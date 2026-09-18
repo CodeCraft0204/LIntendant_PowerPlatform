@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sdh_SDHImportSchemaVersion">
+  <defaultvalue>SDH_v1.1</defaultvalue>
+  <displayname default="SDH Import Schema Version">
+    <label description="SDH Import Schema Version" languagecode="1036" />
+  </displayname>
+  <introducedversion>1.0.0.2</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>
