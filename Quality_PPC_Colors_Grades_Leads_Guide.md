@@ -2,14 +2,16 @@
 
 ## Targets (new)
 
-| Score (Quality Global or PPC %) | Grade (Quality only) | Color |
-|---|---|---|
-| **90%+** | **A** | **Green** |
-| **85% – 89%** | **B** | **Green** |
-| **80% – 84%** | **B** | **Yellow** |
-| **70% – 79%** | **C** | **Yellow** |
-| **60% – 69%** | **D** | **Red** |
-| **&lt; 60%** | **E** | **Red** |
+
+| Score (Quality Global or PPC %) | Grade (Quality only) | Color      |
+| ------------------------------- | -------------------- | ---------- |
+| **90%+**                        | **A**                | **Green**  |
+| **85% – 89%**                   | **B**                | **Green**  |
+| **80% – 84%**                   | **B**                | **Yellow** |
+| **70% – 79%**                   | **C**                | **Yellow** |
+| **60% – 69%**                   | **D**                | **Red**    |
+| **< 60%**                       | **E**                | **Red**    |
+
 
 PPC: **color only** (no grade letter).
 
@@ -17,22 +19,28 @@ Leads KPI target: **≤ 5%** (was ≤ 2%).
 
 Suggested hex (matches existing report style):
 
-| Role | Hex |
-|---|---|
-| Green | `#15803D` |
-| Yellow | `#D97706` |
-| Red | `#C93636` |
+
+| Role        | Hex       |
+| ----------- | --------- |
+| Green       | `#15803D` |
+| Yellow      | `#D97706` |
+| Red         | `#C93636` |
 | Blank / n/a | `#6B7280` |
+
 
 > **Important:** Color must be based on the **numeric score**, not the letter grade. Grade **B** is green at 85–89 and yellow at 80–84.
 
 ---
 
+
+
 ## Part A — Semantic model (`_Measures`)
 
-Open **SDH Scheduling Model** (or the dataset in Desktop) → table **`_Measures`**.
+Open **SDH Scheduling Model** (or the dataset in Desktop) → table `_Measures`.
 
 ### A1. Leads target → 5% (4 places)
+
+
 
 #### 1) `Quality Global Score` — only change `LeadsPass`
 
@@ -78,6 +86,8 @@ SWITCH(
 )
 ```
 
+
+
 #### 3) `Quality Data Status` — `LEADS_PCT` branch
 
 Find:
@@ -93,6 +103,8 @@ Replace with:
 MetricKey = "LEADS_PCT",
     IF(V <= 0.05, "Met", "Not Met"),
 ```
+
+
 
 #### 4) `Quality Data Target` — `LEADS_PCT` label
 
@@ -112,9 +124,11 @@ Also update any card subtitle / text box on **Schedule Quality** that still says
 
 ---
 
+
+
 ### A2. Quality grade letters (include **E**)
 
-Replace **`Quality Global Grade`**:
+Replace `Quality Global Grade`:
 
 ```dax
 Quality Global Grade =
@@ -131,13 +145,15 @@ SWITCH(
 )
 ```
 
-If you created **`Portfolio Quality Global Grade`**, use the same bands with `[Portfolio Quality Global Score]`.
+If you created `Portfolio Quality Global Grade`, use the same bands with `[Portfolio Quality Global Score]`.
 
 ---
 
+
+
 ### A3. Quality score color (score-based, not letter-based)
 
-Replace **`Quality Global Score Color`**:
+Replace `Quality Global Score Color`:
 
 ```dax
 Quality Global Score Color =
@@ -168,6 +184,8 @@ SWITCH(
 ```
 
 ---
+
+
 
 ### A4. Create PPC color measures (no grade)
 
@@ -242,6 +260,8 @@ If any PPC measure is already formatted as **percent 0–100** (eighty-five not 
 
 ---
 
+
+
 ## Part B — Report conditional formatting
 
 After measures exist, wire **font or background** color via **Field value** → the `* Color` measure.
@@ -250,34 +270,42 @@ After measures exist, wire **font or background** color via **Field value** → 
 
 Visual already uses `Quality Global Score Color` in many builds.
 
-1. Select **Global Quality Score / Grade** card  
-2. Format → **Callout value** (or font) → **Conditional formatting**  
-3. Format style: **Field value**  
-4. Field: **`Quality Global Score Color`**  
-5. Apply to score **and** grade text if shown separately  
+1. Select **Global Quality Score / Grade** card
+2. Format → **Callout value** (or font) → **Conditional formatting**
+3. Format style: **Field value**
+4. Field: `Quality Global Score Color`
+5. Apply to score **and** grade text if shown separately
+
+
 
 ### B2. Project Portfolio — Active Project Information
 
-| Column | Conditional format field |
-|---|---|
+
+| Column                                                   | Conditional format field                                                                           |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Quality Global Score (or Portfolio Quality Global Score) | `Portfolio Quality Global Score Color` **or** `Quality Global Score Color` if still on raw measure |
-| Construction PPC 4W % | `Portfolio Construction 4W PPC % Color` |
+| Construction PPC 4W %                                    | `Portfolio Construction 4W PPC % Color`                                                            |
+
 
 Steps per column:
 
-1. Column header dropdown → **Conditional formatting** → **Font color** (or Background)  
-2. **Field value**  
-3. Pick the matching `* Color` measure  
-4. OK  
+1. Column header dropdown → **Conditional formatting** → **Font color** (or Background)
+2. **Field value**
+3. Pick the matching `* Color` measure
+4. OK
+
+
 
 ### B3. PPC / Reliability page cards
 
-| Card | Color measure |
-|---|---|
+
+| Card                     | Color measure                    |
+| ------------------------ | -------------------------------- |
 | Construction Current PPC | `Construction Current PPC Color` |
-| Construction 4-Week PPC | `Construction PPC 4W % Color` |
-| Procurement Current PPC | `Procurement Current PPC Color` |
-| Procurement 4-Week PPC | `Procurement PPC 4W % Color` |
+| Construction 4-Week PPC  | `Construction PPC 4W % Color`    |
+| Procurement Current PPC  | `Procurement Current PPC Color`  |
+| Procurement 4-Week PPC   | `Procurement PPC 4W % Color`     |
+
 
 For each card: Format visual → Callout value → Conditional formatting → Field value → color measure.
 
@@ -286,50 +314,58 @@ For each card: Format visual → Callout value → Conditional formatting → Fi
 Anywhere else that shows:
 
 - Quality Global Score → `Quality Global Score Color` (or Portfolio twin on multi-project visuals)  
-- Any Construction/Procurement Current or 4W PPC % → matching `* Color` measure  
+- Any Construction/Procurement Current or 4W PPC % → matching `* Color` measure
 
 ---
+
+
 
 ## Part C — Validate
 
-| Check | Expected |
-|---|---|
-| Leads KPI target text | ≤ 5% |
-| Leads 3% | Met / green |
-| Leads 6% | Not Met / red |
-| Score 92 | Grade **A**, green |
-| Score 87 | Grade **B**, green |
-| Score 82 | Grade **B**, yellow |
-| Score 75 | Grade **C**, yellow |
-| Score 65 | Grade **D**, red |
-| Score 55 | Grade **E**, red (not F) |
-| PPC 88% | green, no letter |
-| PPC 82% | yellow |
-| PPC 55% | red |
+
+| Check                                               | Expected                      |
+| --------------------------------------------------- | ----------------------------- |
+| Leads KPI target text                               | ≤ 5%                          |
+| Leads 3%                                            | Met / green                   |
+| Leads 6%                                            | Not Met / red                 |
+| Score 92                                            | Grade **A**, green            |
+| Score 87                                            | Grade **B**, green            |
+| Score 82                                            | Grade **B**, yellow           |
+| Score 75                                            | Grade **C**, yellow           |
+| Score 65                                            | Grade **D**, red              |
+| Score 55                                            | Grade **E**, red (not F)      |
+| PPC 88%                                             | green, no letter              |
+| PPC 82%                                             | yellow                        |
+| PPC 55%                                             | red                           |
 | Portfolio row vs Schedule Quality (latest snapshot) | same score **and** same color |
 
+
 ---
+
+
 
 ## Part D — Save & publish
 
-1. Save semantic model  
-2. Publish dataset  
-3. Publish / refresh report  
-4. Spot-check Portfolio + Schedule Quality + PPC pages  
+1. Save semantic model
+2. Publish dataset
+3. Publish / refresh report
+4. Spot-check Portfolio + Schedule Quality + PPC pages
 
 ---
 
+
+
 ## Quick checklist
 
-- [ ] `Quality Global Score` LeadsPass `<= 0.05`  
-- [ ] `Quality Leads Color` `<= 0.05`  
-- [ ] `Quality Data Status` LEADS `<= 0.05`  
-- [ ] `Quality Data Target` `"≤ 5%"`  
-- [ ] `Quality Global Grade` ends with **"E"** (not F)  
-- [ ] `Quality Global Score Color` uses **score bands** (85 / 70), not letter alone  
-- [ ] PPC `* Color` measures created  
-- [ ] Conditional formatting on Portfolio, Schedule Quality, PPC cards  
-- [ ] UI labels saying “≤ 2%” for Leads updated  
+- [x] `Quality Global Score` LeadsPass `<= 0.05`  
+- [x] `Quality Leads Color` `<= 0.05`  
+- [x] `Quality Data Status` LEADS `<= 0.05`  
+- [x] `Quality Data Target` `"≤ 5%"`  
+- [x] `Quality Global Grade` ends with **"E"** (not F)  
+- [x] `Quality Global Score Color` uses **score bands** (85 / 70), not letter alone  
+- [x] PPC `* Color` measures created  
+- [x] Conditional formatting on Portfolio, Schedule Quality, PPC cards  
+- [x] UI labels saying “≤ 2%” for Leads updated  
 
 ---
 
