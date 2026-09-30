@@ -1,0 +1,13 @@
+<retentionconfig retentionconfigid="01362334-28a1-f111-b8de-002248d5a4d7">
+  <criteria>{"QuerySet":["&lt;fetch version=\"1.0\" mapping=\"logical\" savedqueryid=\"9ee4c4a1-0756-472e-95dc-55dee8064eec\"&gt;&lt;entity name=\"sdh_weeklyvariance\"&gt;&lt;attribute name=\"sdh_weeklyvarianceid\" /&gt;&lt;attribute name=\"sdh_variancename\" /&gt;&lt;attribute name=\"createdon\" /&gt;&lt;order attribute=\"sdh_variancename\" descending=\"false\" /&gt;&lt;filter type=\"and\"&gt;&lt;condition attribute=\"statecode\" operator=\"eq\" value=\"0\" /&gt;&lt;/filter&gt;&lt;/entity&gt;&lt;/fetch&gt;"],"SendEmailNotification":true,"ToRecipients":["87ae2b40-5987-f111-8076-002248d5a4d7"],"CCRecipients":[],"OptionsJson":"{\"CanRecoverDeletedRecords\":true}"}</criteria>
+  <entitylogicalname>sdh_weeklyvariance</entitylogicalname>
+  <iscustomizable>1</iscustomizable>
+  <name>SDH Weekly Variance</name>
+  <recurrence>FREQ=DAILY;INTERVAL=30</recurrence>
+  <starttime>8/26/2026 8:30:00 AM</starttime>
+  <statecode>0</statecode>
+  <statuscode>20</statuscode>
+  <timezoneruleversionnumber>4</timezoneruleversionnumber>
+  <type>1</type>
+  <uniquename>SDH Weekly Variance</uniquename>
+</retentionconfig>

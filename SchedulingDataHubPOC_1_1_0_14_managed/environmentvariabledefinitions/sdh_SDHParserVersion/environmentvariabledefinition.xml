@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sdh_SDHParserVersion">
+  <defaultvalue>OfficeScript_v1</defaultvalue>
+  <displayname default="SDH Parser Version">
+    <label description="SDH Parser Version" languagecode="1036" />
+  </displayname>
+  <introducedversion>1.0.0.2</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

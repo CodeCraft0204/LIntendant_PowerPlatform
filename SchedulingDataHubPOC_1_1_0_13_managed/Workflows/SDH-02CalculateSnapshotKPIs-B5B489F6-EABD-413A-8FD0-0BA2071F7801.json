@@ -1,0 +1,933 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedcommondataserviceforapps_f8a58"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "9ea06147-015f-43dc-b841-dfd1f3c90c02"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "currentSnapshotId": {
+                  "title": "Current Snapshot ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Dataverse GUID of the snapshot to calculate.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "projectId": {
+                  "title": "Project ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Dataverse GUID of the project.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "projectNumber": {
+                  "title": "Project Number",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "L Intendant project number.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "snapshotDate": {
+                  "title": "Snapshot Date",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "ISO date yyyy-MM-dd.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "snapshotRevision": {
+                  "title": "Snapshot Revision",
+                  "type": "integer",
+                  "x-ms-dynamically-added": true,
+                  "description": "Snapshot revision number.",
+                  "x-ms-content-hint": "NUMBER"
+                },
+                "importRunId": {
+                  "title": "Import Run ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Dataverse GUID of the related import run.",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "currentSnapshotId",
+                "projectId",
+                "projectNumber",
+                "snapshotDate",
+                "snapshotRevision",
+                "importRunId"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "CMP_Current_Snapshot_ID": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "276f565a-7049-4046-93bf-3f9e6a763380"
+          },
+          "type": "Compose",
+          "inputs": "@replace(replace(triggerBody()?['currentSnapshotId'], '{', ''), '}', '')"
+        },
+        "CMP_Project_ID": {
+          "runAfter": {
+            "CMP_Current_Snapshot_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e5adeab0-0f33-44db-a2dc-3c674544a684"
+          },
+          "type": "Compose",
+          "inputs": "@replace(replace(triggerBody()?['projectId'], '{', ''), '}', '')"
+        },
+        "CMP_Import_Run_ID": {
+          "runAfter": {
+            "CMP_Project_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "af42ec7c-9d5e-41a0-bac0-ced0a80b3cf4"
+          },
+          "type": "Compose",
+          "inputs": "@replace(replace(triggerBody()?['importRunId'], '{', ''), '}', '')"
+        },
+        "CMP_Project_Number": {
+          "runAfter": {
+            "CMP_Import_Run_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7f8d2b8d-26d6-4415-91ee-a765eb4dd51f"
+          },
+          "type": "Compose",
+          "inputs": "@string(triggerBody()?['projectNumber'])"
+        },
+        "CMP_Snapshot_Date": {
+          "runAfter": {
+            "CMP_Project_Number": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "137b17b0-366a-48cf-8e93-eaebf63d917d"
+          },
+          "type": "Compose",
+          "inputs": "@formatDateTime(triggerBody()?['snapshotDate'], 'yyyy-MM-dd')"
+        },
+        "CMP_Snapshot_Revision": {
+          "runAfter": {
+            "CMP_Snapshot_Date": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7075c888-8fa9-4162-bf38-bf7aa0d97aad"
+          },
+          "type": "Compose",
+          "inputs": "@int(triggerBody()?['snapshotRevision'])"
+        },
+        "CMP_Snapshot_Date_Key": {
+          "runAfter": {
+            "CMP_Snapshot_Revision": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d0922f78-7ff7-4ae3-8952-cd3440c6f5ad"
+          },
+          "type": "Compose",
+          "inputs": "@replace(outputs('CMP_Snapshot_Date'), '-', '')"
+        },
+        "CMP_Revision_Key": {
+          "runAfter": {
+            "CMP_Snapshot_Date_Key": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "cadf982d-b7b8-4f74-9239-df940160ba34"
+          },
+          "type": "Compose",
+          "inputs": "@if(less(outputs('CMP_Snapshot_Revision'), 10), concat('R0', outputs('CMP_Snapshot_Revision')), concat('R', outputs('CMP_Snapshot_Revision')))"
+        },
+        "LST_Snapshot_Activity_Mappings": {
+          "runAfter": {
+            "CMP_Revision_Key": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9872ebb8-60a6-435e-ac05-7b3a40d2fa60"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "sdh_taskactivitycodes",
+              "$select": "sdh_taskactivitycodeid,sdh_mappingstatus,_sdh_activitycode_value",
+              "$filter": "@concat('_sdh_snapshot_value eq ', outputs('CMP_Current_Snapshot_ID'))",
+              "$top": 5000
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "FLT_Unmatched_Activity_Mappings": {
+          "runAfter": {
+            "LST_Snapshot_Activity_Mappings": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5b3eea2b-97a6-4d65-b6e9-4ca814eb80a7"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('LST_Snapshot_Activity_Mappings')?['value']",
+            "where": "@or(not(equals(item()?['sdh_mappingstatus'], 232400002)), empty(item()?['_sdh_activitycode_value']))"
+          }
+        },
+        "LST_Snapshot_Dependencies": {
+          "runAfter": {
+            "FLT_Unmatched_Activity_Mappings": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5d9c0996-d79f-4e38-b98a-2cda1570d81f"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "sdh_taskdependencies",
+              "$select": "sdh_taskdependencyid,sdh_parsestatus,_sdh_predecessortask_value,_sdh_taskversion_value",
+              "$filter": "@concat('_sdh_snapshot_value eq ', outputs('CMP_Current_Snapshot_ID'))",
+              "$top": 5000
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "FLT_Unresolved_Dependencies": {
+          "runAfter": {
+            "LST_Snapshot_Dependencies": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5a04fd3a-582b-463a-98ec-e0618be1d147"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('LST_Snapshot_Dependencies')?['value']",
+            "where": "@or(not(equals(item()?['sdh_parsestatus'], 232400001)), empty(item()?['_sdh_predecessortask_value']), empty(item()?['_sdh_taskversion_value']))"
+          }
+        },
+        "LST_Snapshot_Validation_Issues": {
+          "runAfter": {
+            "FLT_Unresolved_Dependencies": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "41701745-001a-4301-9a80-8a77fd6e0e29"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "sdh_validationissues",
+              "$select": "sdh_validationissueid,sdh_severity",
+              "$filter": "@concat('_sdh_snapshot_value eq ', outputs('CMP_Current_Snapshot_ID'))",
+              "$top": 5000
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "FLT_Validation_Warnings": {
+          "runAfter": {
+            "LST_Snapshot_Validation_Issues": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "69238f88-24a6-41ba-84cc-b41f7f95a721"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('LST_Snapshot_Validation_Issues')?['value']",
+            "where": "@equals(item()?['sdh_severity'], 232400002)"
+          }
+        },
+        "FLT_Validation_Errors": {
+          "runAfter": {
+            "FLT_Validation_Warnings": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "92fab826-c69f-4ef7-b055-72d0f8f6108e"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('LST_Snapshot_Validation_Issues')?['value']",
+            "where": "@equals(item()?['sdh_severity'], 232400003)"
+          }
+        },
+        "LST_Existing_Postload_KPIs": {
+          "runAfter": {
+            "FLT_Validation_Errors": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e2a609cc-2508-42ba-8aa0-0833cd9cf8f0"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "sdh_schedulekpiresults",
+              "$select": "sdh_schedulekpiresultid,sdh_key",
+              "$filter": "@concat('_sdh_snapshot_value eq ', outputs('CMP_Current_Snapshot_ID'))",
+              "$top": 5000
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "CMP_KPI_Key_UNMATCHED_ACTIVITY_CODE_COUNT": {
+          "runAfter": {
+            "LST_Existing_Postload_KPIs": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7af4c6e6-9971-430f-a36b-127db23f42de"
+          },
+          "type": "Compose",
+          "inputs": "@concat('KPI_', outputs('CMP_Project_Number'), '_', outputs('CMP_Snapshot_Date_Key'), '_', outputs('CMP_Revision_Key'), '_UNMATCHED_ACTIVITY_CODE_COUNT_PROJECT')"
+        },
+        "FLT_Existing_KPI_UNMATCHED_ACTIVITY_CODE_COUNT": {
+          "runAfter": {
+            "CMP_KPI_Key_UNMATCHED_ACTIVITY_CODE_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "be105b4a-35ad-49c4-b8a6-4922745f6b80"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('LST_Existing_Postload_KPIs')?['value']",
+            "where": "@equals(item()?['sdh_key'], outputs('CMP_KPI_Key_UNMATCHED_ACTIVITY_CODE_COUNT'))"
+          }
+        },
+        "COND_Upsert_KPI_UNMATCHED_ACTIVITY_CODE_COUNT": {
+          "actions": {
+            "UPD_KPI_UNMATCHED_ACTIVITY_CODE_COUNT": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "71bcb98c-79f1-4714-a6f4-083a2378c98b"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulekpiresults",
+                  "recordId": "@first(body('FLT_Existing_KPI_UNMATCHED_ACTIVITY_CODE_COUNT'))?['sdh_schedulekpiresultid']",
+                  "item/sdh_kpiresultname": "@concat('Unmatched Activity Code Count - ', outputs('CMP_Snapshot_Date'))",
+                  "item/sdh_key": "@outputs('CMP_KPI_Key_UNMATCHED_ACTIVITY_CODE_COUNT')",
+                  "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                  "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                  "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                  "item/sdh_snapshotdate": "@outputs('CMP_Snapshot_Date')",
+                  "item/sdh_snapshotrevision": "@outputs('CMP_Snapshot_Revision')",
+                  "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                  "item/sdh_kpiname": "Unmatched Activity Code Count",
+                  "item/sdh_kpicode": "UNMATCHED_ACTIVITY_CODE_COUNT",
+                  "item/sdh_kpicategory": 232400009,
+                  "item/sdh_calculationlevel": 232400002,
+                  "item/sdh_scopekey": "PROJECT",
+                  "item/sdh_kpivaluetypenumber": 232400002,
+                  "item/sdh_kpivalue": "@length(body('FLT_Unmatched_Activity_Mappings'))",
+                  "item/sdh_kpiunit": "records",
+                  "item/sdh_kpistatus": 232400004,
+                  "item/sdh_numeratorvalue": "@length(body('FLT_Unmatched_Activity_Mappings'))",
+                  "item/sdh_eligiblerecordcount": "@length(body('FLT_Unmatched_Activity_Mappings'))",
+                  "item/sdh_excludedrecordcount": 0,
+                  "item/sdh_formulaversion": "FLOW_POSTLOAD_v1",
+                  "item/sdh_formulanotes": "Task activity mappings with no resolved master activity code.",
+                  "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                  "item/sdh_calculatedat": "@utcNow()",
+                  "item/sdh_needsconfirmation": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "FLT_Existing_KPI_UNMATCHED_ACTIVITY_CODE_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greater": [
+              "@length(body('FLT_Existing_KPI_UNMATCHED_ACTIVITY_CODE_COUNT'))",
+              0
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d7fd2e72-e70a-4e3c-95fa-33981e5a9029"
+          },
+          "type": "If",
+          "else": {
+            "actions": {
+              "ADD_KPI_UNMATCHED_ACTIVITY_CODE_COUNT": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "1b1a71cb-09a3-4d04-9ad7-e0445fc3b5e1"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_commondataserviceforapps",
+                    "operationId": "CreateRecord",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                  },
+                  "parameters": {
+                    "entityName": "sdh_schedulekpiresults",
+                    "item/sdh_kpiresultname": "@concat('Unmatched Activity Code Count - ', outputs('CMP_Snapshot_Date'))",
+                    "item/sdh_key": "@outputs('CMP_KPI_Key_UNMATCHED_ACTIVITY_CODE_COUNT')",
+                    "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                    "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                    "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                    "item/sdh_snapshotdate": "@outputs('CMP_Snapshot_Date')",
+                    "item/sdh_snapshotrevision": "@outputs('CMP_Snapshot_Revision')",
+                    "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                    "item/sdh_kpiname": "Unmatched Activity Code Count",
+                    "item/sdh_kpicode": "UNMATCHED_ACTIVITY_CODE_COUNT",
+                    "item/sdh_kpicategory": 232400009,
+                    "item/sdh_calculationlevel": 232400002,
+                    "item/sdh_scopekey": "PROJECT",
+                    "item/sdh_kpivaluetypenumber": 232400002,
+                    "item/sdh_kpivalue": "@length(body('FLT_Unmatched_Activity_Mappings'))",
+                    "item/sdh_kpiunit": "records",
+                    "item/sdh_kpistatus": 232400004,
+                    "item/sdh_numeratorvalue": "@length(body('FLT_Unmatched_Activity_Mappings'))",
+                    "item/sdh_eligiblerecordcount": "@length(body('FLT_Unmatched_Activity_Mappings'))",
+                    "item/sdh_excludedrecordcount": 0,
+                    "item/sdh_formulaversion": "FLOW_POSTLOAD_v1",
+                    "item/sdh_formulanotes": "Task activity mappings with no resolved master activity code.",
+                    "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                    "item/sdh_calculatedat": "@utcNow()",
+                    "item/sdh_needsconfirmation": false
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            }
+          }
+        },
+        "CMP_KPI_Key_UNRESOLVED_DEPENDENCY_COUNT": {
+          "runAfter": {
+            "COND_Upsert_KPI_UNMATCHED_ACTIVITY_CODE_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ecaaee43-2d4c-4a63-8c4b-9f9592991f82"
+          },
+          "type": "Compose",
+          "inputs": "@concat('KPI_', outputs('CMP_Project_Number'), '_', outputs('CMP_Snapshot_Date_Key'), '_', outputs('CMP_Revision_Key'), '_UNRESOLVED_DEPENDENCY_COUNT_PROJECT')"
+        },
+        "FLT_Existing_KPI_UNRESOLVED_DEPENDENCY_COUNT": {
+          "runAfter": {
+            "CMP_KPI_Key_UNRESOLVED_DEPENDENCY_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "06522a54-642c-4d00-a352-205a9aa59971"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('LST_Existing_Postload_KPIs')?['value']",
+            "where": "@equals(item()?['sdh_key'], outputs('CMP_KPI_Key_UNRESOLVED_DEPENDENCY_COUNT'))"
+          }
+        },
+        "COND_Upsert_KPI_UNRESOLVED_DEPENDENCY_COUNT": {
+          "actions": {
+            "UPD_KPI_UNRESOLVED_DEPENDENCY_COUNT": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "15e93503-6191-42bb-b154-30dac941edda"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulekpiresults",
+                  "recordId": "@first(body('FLT_Existing_KPI_UNRESOLVED_DEPENDENCY_COUNT'))?['sdh_schedulekpiresultid']",
+                  "item/sdh_kpiresultname": "@concat('Unresolved Dependency Count - ', outputs('CMP_Snapshot_Date'))",
+                  "item/sdh_key": "@outputs('CMP_KPI_Key_UNRESOLVED_DEPENDENCY_COUNT')",
+                  "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                  "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                  "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                  "item/sdh_snapshotdate": "@outputs('CMP_Snapshot_Date')",
+                  "item/sdh_snapshotrevision": "@outputs('CMP_Snapshot_Revision')",
+                  "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                  "item/sdh_kpiname": "Unresolved Dependency Count",
+                  "item/sdh_kpicode": "UNRESOLVED_DEPENDENCY_COUNT",
+                  "item/sdh_kpicategory": 232400009,
+                  "item/sdh_calculationlevel": 232400002,
+                  "item/sdh_scopekey": "PROJECT",
+                  "item/sdh_kpivaluetypenumber": 232400002,
+                  "item/sdh_kpivalue": "@length(body('FLT_Unresolved_Dependencies'))",
+                  "item/sdh_kpiunit": "records",
+                  "item/sdh_kpistatus": 232400004,
+                  "item/sdh_numeratorvalue": "@length(body('FLT_Unresolved_Dependencies'))",
+                  "item/sdh_eligiblerecordcount": "@length(body('FLT_Unresolved_Dependencies'))",
+                  "item/sdh_excludedrecordcount": 0,
+                  "item/sdh_formulaversion": "FLOW_POSTLOAD_v1",
+                  "item/sdh_formulanotes": "Dependencies that did not resolve to both task references.",
+                  "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                  "item/sdh_calculatedat": "@utcNow()",
+                  "item/sdh_needsconfirmation": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "FLT_Existing_KPI_UNRESOLVED_DEPENDENCY_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greater": [
+              "@length(body('FLT_Existing_KPI_UNRESOLVED_DEPENDENCY_COUNT'))",
+              0
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "dccede5a-63d8-45de-8f88-c2066b942fa8"
+          },
+          "type": "If",
+          "else": {
+            "actions": {
+              "ADD_KPI_UNRESOLVED_DEPENDENCY_COUNT": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "0cfa388f-a9ef-4b9c-b2ce-50f19adb1a64"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_commondataserviceforapps",
+                    "operationId": "CreateRecord",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                  },
+                  "parameters": {
+                    "entityName": "sdh_schedulekpiresults",
+                    "item/sdh_kpiresultname": "@concat('Unresolved Dependency Count - ', outputs('CMP_Snapshot_Date'))",
+                    "item/sdh_key": "@outputs('CMP_KPI_Key_UNRESOLVED_DEPENDENCY_COUNT')",
+                    "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                    "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                    "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                    "item/sdh_snapshotdate": "@outputs('CMP_Snapshot_Date')",
+                    "item/sdh_snapshotrevision": "@outputs('CMP_Snapshot_Revision')",
+                    "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                    "item/sdh_kpiname": "Unresolved Dependency Count",
+                    "item/sdh_kpicode": "UNRESOLVED_DEPENDENCY_COUNT",
+                    "item/sdh_kpicategory": 232400009,
+                    "item/sdh_calculationlevel": 232400002,
+                    "item/sdh_scopekey": "PROJECT",
+                    "item/sdh_kpivaluetypenumber": 232400002,
+                    "item/sdh_kpivalue": "@length(body('FLT_Unresolved_Dependencies'))",
+                    "item/sdh_kpiunit": "records",
+                    "item/sdh_kpistatus": 232400004,
+                    "item/sdh_numeratorvalue": "@length(body('FLT_Unresolved_Dependencies'))",
+                    "item/sdh_eligiblerecordcount": "@length(body('FLT_Unresolved_Dependencies'))",
+                    "item/sdh_excludedrecordcount": 0,
+                    "item/sdh_formulaversion": "FLOW_POSTLOAD_v1",
+                    "item/sdh_formulanotes": "Dependencies that did not resolve to both task references.",
+                    "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                    "item/sdh_calculatedat": "@utcNow()",
+                    "item/sdh_needsconfirmation": false
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            }
+          }
+        },
+        "CMP_KPI_Key_VALIDATION_WARNING_COUNT": {
+          "runAfter": {
+            "COND_Upsert_KPI_UNRESOLVED_DEPENDENCY_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "ec7470cd-fdb6-4daa-9977-37e375e6f6fa"
+          },
+          "type": "Compose",
+          "inputs": "@concat('KPI_', outputs('CMP_Project_Number'), '_', outputs('CMP_Snapshot_Date_Key'), '_', outputs('CMP_Revision_Key'), '_VALIDATION_WARNING_COUNT_PROJECT')"
+        },
+        "FLT_Existing_KPI_VALIDATION_WARNING_COUNT": {
+          "runAfter": {
+            "CMP_KPI_Key_VALIDATION_WARNING_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "23b2254d-8393-4bfb-a326-b2c5220ed3df"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('LST_Existing_Postload_KPIs')?['value']",
+            "where": "@equals(item()?['sdh_key'], outputs('CMP_KPI_Key_VALIDATION_WARNING_COUNT'))"
+          }
+        },
+        "COND_Upsert_KPI_VALIDATION_WARNING_COUNT": {
+          "actions": {
+            "UPD_KPI_VALIDATION_WARNING_COUNT": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "21cf649f-a119-45b9-ad11-4581af44d7ed"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulekpiresults",
+                  "recordId": "@first(body('FLT_Existing_KPI_VALIDATION_WARNING_COUNT'))?['sdh_schedulekpiresultid']",
+                  "item/sdh_kpiresultname": "@concat('Validation Warning Count - ', outputs('CMP_Snapshot_Date'))",
+                  "item/sdh_key": "@outputs('CMP_KPI_Key_VALIDATION_WARNING_COUNT')",
+                  "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                  "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                  "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                  "item/sdh_snapshotdate": "@outputs('CMP_Snapshot_Date')",
+                  "item/sdh_snapshotrevision": "@outputs('CMP_Snapshot_Revision')",
+                  "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                  "item/sdh_kpiname": "Validation Warning Count",
+                  "item/sdh_kpicode": "VALIDATION_WARNING_COUNT",
+                  "item/sdh_kpicategory": 232400009,
+                  "item/sdh_calculationlevel": 232400002,
+                  "item/sdh_scopekey": "PROJECT",
+                  "item/sdh_kpivaluetypenumber": 232400002,
+                  "item/sdh_kpivalue": "@length(body('FLT_Validation_Warnings'))",
+                  "item/sdh_kpiunit": "records",
+                  "item/sdh_kpistatus": 232400004,
+                  "item/sdh_numeratorvalue": "@length(body('FLT_Validation_Warnings'))",
+                  "item/sdh_eligiblerecordcount": "@length(body('FLT_Validation_Warnings'))",
+                  "item/sdh_excludedrecordcount": 0,
+                  "item/sdh_formulaversion": "FLOW_POSTLOAD_v1",
+                  "item/sdh_formulanotes": "Validation issues with Warning severity.",
+                  "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                  "item/sdh_calculatedat": "@utcNow()",
+                  "item/sdh_needsconfirmation": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "FLT_Existing_KPI_VALIDATION_WARNING_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greater": [
+              "@length(body('FLT_Existing_KPI_VALIDATION_WARNING_COUNT'))",
+              0
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "eb88b948-64f6-4c52-8180-e4102cf2a2b1"
+          },
+          "type": "If",
+          "else": {
+            "actions": {
+              "ADD_KPI_VALIDATION_WARNING_COUNT": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "5fa97c2d-a856-4e21-a962-6683b86df01c"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_commondataserviceforapps",
+                    "operationId": "CreateRecord",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                  },
+                  "parameters": {
+                    "entityName": "sdh_schedulekpiresults",
+                    "item/sdh_kpiresultname": "@concat('Validation Warning Count - ', outputs('CMP_Snapshot_Date'))",
+                    "item/sdh_key": "@outputs('CMP_KPI_Key_VALIDATION_WARNING_COUNT')",
+                    "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                    "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                    "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                    "item/sdh_snapshotdate": "@outputs('CMP_Snapshot_Date')",
+                    "item/sdh_snapshotrevision": "@outputs('CMP_Snapshot_Revision')",
+                    "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                    "item/sdh_kpiname": "Validation Warning Count",
+                    "item/sdh_kpicode": "VALIDATION_WARNING_COUNT",
+                    "item/sdh_kpicategory": 232400009,
+                    "item/sdh_calculationlevel": 232400002,
+                    "item/sdh_scopekey": "PROJECT",
+                    "item/sdh_kpivaluetypenumber": 232400002,
+                    "item/sdh_kpivalue": "@length(body('FLT_Validation_Warnings'))",
+                    "item/sdh_kpiunit": "records",
+                    "item/sdh_kpistatus": 232400004,
+                    "item/sdh_numeratorvalue": "@length(body('FLT_Validation_Warnings'))",
+                    "item/sdh_eligiblerecordcount": "@length(body('FLT_Validation_Warnings'))",
+                    "item/sdh_excludedrecordcount": 0,
+                    "item/sdh_formulaversion": "FLOW_POSTLOAD_v1",
+                    "item/sdh_formulanotes": "Validation issues with Warning severity.",
+                    "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                    "item/sdh_calculatedat": "@utcNow()",
+                    "item/sdh_needsconfirmation": false
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            }
+          }
+        },
+        "CMP_KPI_Key_VALIDATION_ERROR_COUNT": {
+          "runAfter": {
+            "COND_Upsert_KPI_VALIDATION_WARNING_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "dc479cdf-e7cc-4f4b-9fc9-42312e654785"
+          },
+          "type": "Compose",
+          "inputs": "@concat('KPI_', outputs('CMP_Project_Number'), '_', outputs('CMP_Snapshot_Date_Key'), '_', outputs('CMP_Revision_Key'), '_VALIDATION_ERROR_COUNT_PROJECT')"
+        },
+        "FLT_Existing_KPI_VALIDATION_ERROR_COUNT": {
+          "runAfter": {
+            "CMP_KPI_Key_VALIDATION_ERROR_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "37088387-850a-4be1-9728-844fd9578302"
+          },
+          "type": "Query",
+          "inputs": {
+            "from": "@body('LST_Existing_Postload_KPIs')?['value']",
+            "where": "@equals(item()?['sdh_key'], outputs('CMP_KPI_Key_VALIDATION_ERROR_COUNT'))"
+          }
+        },
+        "COND_Upsert_KPI_VALIDATION_ERROR_COUNT": {
+          "actions": {
+            "UPD_KPI_VALIDATION_ERROR_COUNT": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "7f6f595d-c7db-482f-aa05-bc6d1c2a12b0"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulekpiresults",
+                  "recordId": "@first(body('FLT_Existing_KPI_VALIDATION_ERROR_COUNT'))?['sdh_schedulekpiresultid']",
+                  "item/sdh_kpiresultname": "@concat('Validation Error Count - ', outputs('CMP_Snapshot_Date'))",
+                  "item/sdh_key": "@outputs('CMP_KPI_Key_VALIDATION_ERROR_COUNT')",
+                  "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                  "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                  "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                  "item/sdh_snapshotdate": "@outputs('CMP_Snapshot_Date')",
+                  "item/sdh_snapshotrevision": "@outputs('CMP_Snapshot_Revision')",
+                  "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                  "item/sdh_kpiname": "Validation Error Count",
+                  "item/sdh_kpicode": "VALIDATION_ERROR_COUNT",
+                  "item/sdh_kpicategory": 232400009,
+                  "item/sdh_calculationlevel": 232400002,
+                  "item/sdh_scopekey": "PROJECT",
+                  "item/sdh_kpivaluetypenumber": 232400002,
+                  "item/sdh_kpivalue": "@length(body('FLT_Validation_Errors'))",
+                  "item/sdh_kpiunit": "records",
+                  "item/sdh_kpistatus": 232400004,
+                  "item/sdh_numeratorvalue": "@length(body('FLT_Validation_Errors'))",
+                  "item/sdh_eligiblerecordcount": "@length(body('FLT_Validation_Errors'))",
+                  "item/sdh_excludedrecordcount": 0,
+                  "item/sdh_formulaversion": "FLOW_POSTLOAD_v1",
+                  "item/sdh_formulanotes": "Validation issues with Error severity.",
+                  "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                  "item/sdh_calculatedat": "@utcNow()",
+                  "item/sdh_needsconfirmation": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "FLT_Existing_KPI_VALIDATION_ERROR_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greater": [
+              "@length(body('FLT_Existing_KPI_VALIDATION_ERROR_COUNT'))",
+              0
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8853d7b8-45e7-4e46-a4cb-9a0d8ef9f4ab"
+          },
+          "type": "If",
+          "else": {
+            "actions": {
+              "ADD_KPI_VALIDATION_ERROR_COUNT": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "93d6de1c-fa4f-4b69-a66c-14987be4754e"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                  "host": {
+                    "connectionName": "shared_commondataserviceforapps",
+                    "operationId": "CreateRecord",
+                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                  },
+                  "parameters": {
+                    "entityName": "sdh_schedulekpiresults",
+                    "item/sdh_kpiresultname": "@concat('Validation Error Count - ', outputs('CMP_Snapshot_Date'))",
+                    "item/sdh_key": "@outputs('CMP_KPI_Key_VALIDATION_ERROR_COUNT')",
+                    "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                    "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                    "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                    "item/sdh_snapshotdate": "@outputs('CMP_Snapshot_Date')",
+                    "item/sdh_snapshotrevision": "@outputs('CMP_Snapshot_Revision')",
+                    "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                    "item/sdh_kpiname": "Validation Error Count",
+                    "item/sdh_kpicode": "VALIDATION_ERROR_COUNT",
+                    "item/sdh_kpicategory": 232400009,
+                    "item/sdh_calculationlevel": 232400002,
+                    "item/sdh_scopekey": "PROJECT",
+                    "item/sdh_kpivaluetypenumber": 232400002,
+                    "item/sdh_kpivalue": "@length(body('FLT_Validation_Errors'))",
+                    "item/sdh_kpiunit": "records",
+                    "item/sdh_kpistatus": 232400004,
+                    "item/sdh_numeratorvalue": "@length(body('FLT_Validation_Errors'))",
+                    "item/sdh_eligiblerecordcount": "@length(body('FLT_Validation_Errors'))",
+                    "item/sdh_excludedrecordcount": 0,
+                    "item/sdh_formulaversion": "FLOW_POSTLOAD_v1",
+                    "item/sdh_formulanotes": "Validation issues with Error severity.",
+                    "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                    "item/sdh_calculatedat": "@utcNow()",
+                    "item/sdh_needsconfirmation": false
+                  },
+                  "authentication": "@parameters('$authentication')"
+                }
+              }
+            }
+          }
+        },
+        "RESP_Snapshot_KPIs": {
+          "runAfter": {
+            "COND_Upsert_KPI_VALIDATION_ERROR_COUNT": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "73665471-abc1-4f22-830f-92d11095ff1e"
+          },
+          "type": "Response",
+          "kind": "PowerApp",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "status": "Completed",
+              "snapshotId": "@outputs('CMP_Current_Snapshot_ID')",
+              "message": "Post-load snapshot KPIs calculated or updated."
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                },
+                "snapshotId": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

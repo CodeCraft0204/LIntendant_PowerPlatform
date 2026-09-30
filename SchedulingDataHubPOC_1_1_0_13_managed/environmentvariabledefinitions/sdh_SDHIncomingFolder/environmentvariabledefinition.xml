@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sdh_SDHIncomingFolder">
+  <defaultvalue>/chanciers de projet/Exports hebdomadaires</defaultvalue>
+  <displayname default="SDH Incoming Folder">
+    <label description="SDH Incoming Folder" languagecode="1036" />
+  </displayname>
+  <introducedversion>1.0.0.2</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

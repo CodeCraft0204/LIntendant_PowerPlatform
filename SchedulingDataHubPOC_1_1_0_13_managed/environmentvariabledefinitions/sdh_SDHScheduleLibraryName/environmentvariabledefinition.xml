@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sdh_SDHScheduleLibraryName">
+  <defaultvalue>chanciers de projet</defaultvalue>
+  <displayname default="SDH Schedule Library Name">
+    <label description="SDH Schedule Library Name" languagecode="1036" />
+  </displayname>
+  <introducedversion>1.0.0.2</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

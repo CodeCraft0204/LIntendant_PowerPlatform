@@ -1,0 +1,1472 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedcommondataserviceforapps_f8a58"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "7e349cb8-c86b-4345-8965-388c07ded2cb"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "currentSnapshotId": {
+                  "title": "Current Snapshot ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Dataverse GUID of current snapshot.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "projectId": {
+                  "title": "Project ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Dataverse GUID of project.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "projectNumber": {
+                  "title": "Project Number",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Project number.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "snapshotDate": {
+                  "title": "Current Snapshot Date",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "ISO date yyyy-MM-dd.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "snapshotRevision": {
+                  "title": "Current Snapshot Revision",
+                  "type": "integer",
+                  "x-ms-dynamically-added": true,
+                  "description": "Revision number.",
+                  "x-ms-content-hint": "NUMBER"
+                },
+                "currentStatusDate": {
+                  "title": "Current Status Date",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Current schedule status date yyyy-MM-dd.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "importRunId": {
+                  "title": "Import Run ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Related import run GUID.",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "currentSnapshotId",
+                "projectId",
+                "projectNumber",
+                "snapshotDate",
+                "snapshotRevision",
+                "currentStatusDate",
+                "importRunId"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "CMP_Current_Snapshot_ID": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "6fc83b56-5147-4753-b04d-9bcf86bc2760"
+          },
+          "type": "Compose",
+          "inputs": "@replace(replace(triggerBody()?['currentSnapshotId'], '{', ''), '}', '')"
+        },
+        "CMP_Project_ID": {
+          "runAfter": {
+            "CMP_Current_Snapshot_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e9a2ff77-a88e-49c6-afdc-456176cf6ac2"
+          },
+          "type": "Compose",
+          "inputs": "@replace(replace(triggerBody()?['projectId'], '{', ''), '}', '')"
+        },
+        "CMP_Import_Run_ID": {
+          "runAfter": {
+            "CMP_Project_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "12f3bbe9-0811-4e02-82e5-56465f8ecaff"
+          },
+          "type": "Compose",
+          "inputs": "@replace(replace(triggerBody()?['importRunId'], '{', ''), '}', '')"
+        },
+        "CMP_Project_Number": {
+          "runAfter": {
+            "CMP_Import_Run_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "baea04b0-caeb-4e35-84cb-6e58abea1b5d"
+          },
+          "type": "Compose",
+          "inputs": "@string(triggerBody()?['projectNumber'])"
+        },
+        "CMP_Current_Snapshot_Date": {
+          "runAfter": {
+            "CMP_Project_Number": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "1f19ad95-913a-4a57-b60c-74c56ac3e678"
+          },
+          "type": "Compose",
+          "inputs": "@formatDateTime(triggerBody()?['snapshotDate'], 'yyyy-MM-dd')"
+        },
+        "CMP_Current_Snapshot_Revision": {
+          "runAfter": {
+            "CMP_Current_Snapshot_Date": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "1c2f81ef-4315-4588-872f-be5c67fb75bd"
+          },
+          "type": "Compose",
+          "inputs": "@int(triggerBody()?['snapshotRevision'])"
+        },
+        "CMP_Current_Status_Date": {
+          "runAfter": {
+            "CMP_Current_Snapshot_Revision": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2c13fb1d-2429-4997-8321-851683491f80"
+          },
+          "type": "Compose",
+          "inputs": "@formatDateTime(triggerBody()?['currentStatusDate'], 'yyyy-MM-dd')"
+        },
+        "CMP_Current_Date_Key": {
+          "runAfter": {
+            "CMP_Current_Status_Date": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3e40cfdd-dc3c-47aa-acea-d89bec5115df"
+          },
+          "type": "Compose",
+          "inputs": "@replace(outputs('CMP_Current_Snapshot_Date'), '-', '')"
+        },
+        "CMP_Current_Revision_Key": {
+          "runAfter": {
+            "CMP_Current_Date_Key": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "b5b0ed8d-a545-4f4e-8d72-ed35d351dceb"
+          },
+          "type": "Compose",
+          "inputs": "@if(less(outputs('CMP_Current_Snapshot_Revision'), 10), concat('R0', outputs('CMP_Current_Snapshot_Revision')), concat('R', outputs('CMP_Current_Snapshot_Revision')))"
+        },
+        "INIT_PPC_Planned": {
+          "runAfter": {
+            "CMP_Current_Revision_Key": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3cee8042-9712-4e4d-a084-e2535a20fa60"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VAR_PPC_Planned",
+                "type": "Integer",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "INIT_PPC_Completed": {
+          "runAfter": {
+            "INIT_PPC_Planned": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "305d412b-55ab-406a-b9fe-2f8eb403c23a"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "VAR_PPC_Completed",
+                "type": "Integer",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "LST_Previous_Snapshot": {
+          "runAfter": {
+            "INIT_PPC_Completed": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f24a4197-0ddf-4fcd-8156-53dc9f5b9d3e"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "sdh_schedulesnapshots",
+              "$select": "sdh_schedulesnapshotid,sdh_snapshotdate,sdh_snapshotrevision,sdh_statusdate,sdh_snapshotname",
+              "$filter": "@concat('_sdh_project_value eq ', outputs('CMP_Project_ID'), ' and sdh_snapshotdate lt ', outputs('CMP_Current_Snapshot_Date'), ' and sdh_importstatus eq 232400002')",
+              "$orderby": "sdh_snapshotdate desc,sdh_snapshotrevision desc",
+              "$top": 1
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "COND_Previous_Snapshot_Found": {
+          "actions": {
+            "CMP_Previous_Snapshot_ID": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "55f92da9-4e8c-42c8-b55b-6a30df9ee2be"
+              },
+              "type": "Compose",
+              "inputs": "@first(body('LST_Previous_Snapshot')?['value'])?['sdh_schedulesnapshotid']"
+            },
+            "CMP_Previous_Snapshot_Date": {
+              "runAfter": {
+                "CMP_Previous_Snapshot_ID": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "a59378d7-c6a6-4426-979e-7b0b86583a8a"
+              },
+              "type": "Compose",
+              "inputs": "@formatDateTime(first(body('LST_Previous_Snapshot')?['value'])?['sdh_snapshotdate'], 'yyyy-MM-dd')"
+            },
+            "CMP_Previous_Status_Date": {
+              "runAfter": {
+                "CMP_Previous_Snapshot_Date": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "34056753-bc5d-4f83-a8f8-c7211742ddf7"
+              },
+              "type": "Compose",
+              "inputs": "@formatDateTime(coalesce(first(body('LST_Previous_Snapshot')?['value'])?['sdh_statusdate'], first(body('LST_Previous_Snapshot')?['value'])?['sdh_snapshotdate']), 'yyyy-MM-dd')"
+            },
+            "CMP_Previous_Date_Key": {
+              "runAfter": {
+                "CMP_Previous_Status_Date": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "551ac979-ae72-4a57-8faa-7a43fc728744"
+              },
+              "type": "Compose",
+              "inputs": "@replace(outputs('CMP_Previous_Snapshot_Date'), '-', '')"
+            },
+            "LST_Current_Task_Versions": {
+              "runAfter": {
+                "CMP_Previous_Date_Key": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "0be95da1-142c-4da5-9b7d-0d0375a08fec"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_scheduletaskversions",
+                  "$select": "sdh_scheduletaskversionid,sdh_taskuniqueid,sdh_tasknameraw,sdh_startdate,sdh_finishdate,sdh_durationdays,sdh_durationhours,sdh_percentcomplete,sdh_iscritical,sdh_wbs,sdh_iscompleted,sdh_issummary,sdh_actualfinish,_sdh_scheduletask_value",
+                  "$filter": "@concat('_sdh_snapshot_value eq ', outputs('CMP_Current_Snapshot_ID'))",
+                  "$top": 5000
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "LST_Previous_Task_Versions": {
+              "runAfter": {
+                "LST_Current_Task_Versions": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "95a8ac25-1775-46c6-ace8-38a25e379529"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_scheduletaskversions",
+                  "$select": "sdh_scheduletaskversionid,sdh_taskuniqueid,sdh_tasknameraw,sdh_startdate,sdh_finishdate,sdh_durationdays,sdh_durationhours,sdh_percentcomplete,sdh_iscritical,sdh_wbs,sdh_iscompleted,sdh_issummary,sdh_actualfinish,_sdh_scheduletask_value",
+                  "$filter": "@concat('_sdh_snapshot_value eq ', outputs('CMP_Previous_Snapshot_ID'))",
+                  "$top": 5000
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "LST_Existing_Variances": {
+              "runAfter": {
+                "LST_Previous_Task_Versions": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "63766cee-dcfc-432d-a820-c1912f6f803a"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_weeklyvariances",
+                  "$select": "sdh_weeklyvarianceid,sdh_key",
+                  "$filter": "@concat('_sdh_tosnapshot_value eq ', outputs('CMP_Current_Snapshot_ID'))",
+                  "$top": 5000
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "LST_Existing_PPC_Rows": {
+              "runAfter": {
+                "LST_Existing_Variances": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "e25414a3-b0b4-4de4-8be7-162bf3040391"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_ppcresults",
+                  "$select": "sdh_ppcresultid,sdh_key",
+                  "$filter": "@concat('_sdh_tosnapshot_value eq ', outputs('CMP_Current_Snapshot_ID'))",
+                  "$top": 5000
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "LST_Existing_PPC_KPI": {
+              "runAfter": {
+                "LST_Existing_PPC_Rows": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "39f6d433-c48f-48c8-8eaa-d937d8345ba7"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulekpiresults",
+                  "$select": "sdh_schedulekpiresultid,sdh_key",
+                  "$filter": "@concat('_sdh_snapshot_value eq ', outputs('CMP_Current_Snapshot_ID'), ' and sdh_kpicode eq ''PPC_PERCENT''')",
+                  "$top": 2
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "RESP_Variance_Accepted": {
+              "runAfter": {
+                "LST_Existing_PPC_KPI": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "5ae46b8a-ae28-4826-8322-4170ec0a80bc"
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 202,
+                "body": {
+                  "status": "Accepted",
+                  "snapshotId": "@outputs('CMP_Current_Snapshot_ID')",
+                  "message": "Weekly variance and PPC calculation accepted and continuing asynchronously."
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "snapshotId": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "APPLY_Current_Task_Versions": {
+              "actions": {
+                "FLT_Previous_Task": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "eb61cccc-0526-428e-96f8-26a9835a4f03"
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('LST_Previous_Task_Versions')?['value']",
+                    "where": "@equals(string(item()?['sdh_taskuniqueid']), string(items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid']))"
+                  }
+                },
+                "COND_Previous_Task_Exists": {
+                  "actions": {
+                    "CMP_Variance_Key_Changed": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "2468464d-0f97-4c9a-91f6-f09caef4bbc8"
+                      },
+                      "type": "Compose",
+                      "inputs": "@concat('VAR_', outputs('CMP_Project_Number'), '_', outputs('CMP_Previous_Date_Key'), '_', outputs('CMP_Current_Date_Key'), '_U', items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'])"
+                    },
+                    "FLT_Existing_Variance_Changed": {
+                      "runAfter": {
+                        "CMP_Variance_Key_Changed": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "a091c0d0-b249-4bf3-be4f-f881c4e27154"
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@body('LST_Existing_Variances')?['value']",
+                        "where": "@equals(item()?['sdh_key'], outputs('CMP_Variance_Key_Changed'))"
+                      }
+                    },
+                    "COND_Task_Changed": {
+                      "actions": {
+                        "COND_Changed_Variance_Exists": {
+                          "actions": {
+                            "UPD_Changed_Variance": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "a8464e2e-ed97-498a-a4b0-9bab047e5995"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connectionName": "shared_commondataserviceforapps",
+                                  "operationId": "UpdateOnlyRecord",
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                                },
+                                "parameters": {
+                                  "entityName": "sdh_weeklyvariances",
+                                  "recordId": "@first(body('FLT_Existing_Variance_Changed'))?['sdh_weeklyvarianceid']",
+                                  "item/sdh_variancename": "@concat('Changed - U', coalesce(items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'],first(body('FLT_Previous_Task'))?['sdh_taskuniqueid']), ' - ', outputs('CMP_Previous_Snapshot_Date'), ' to ', outputs('CMP_Current_Snapshot_Date'))",
+                                  "item/sdh_key": "@outputs('CMP_Variance_Key_Changed')",
+                                  "item/sdh_primarychangetype": 232400003,
+                                  "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                                  "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                                  "item/sdh_FromSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Previous_Snapshot_ID'), ')')",
+                                  "item/sdh_ToSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                                  "item/sdh_ScheduleTask@odata.bind": "@concat('sdh_scheduletasks(', coalesce(items('APPLY_Current_Task_Versions')?['_sdh_scheduletask_value'],first(body('FLT_Previous_Task'))?['_sdh_scheduletask_value']), ')')",
+                                  "item/sdh_startdatebefore": "@first(body('FLT_Previous_Task'))?['sdh_startdate']",
+                                  "item/sdh_startdateafter": "@items('APPLY_Current_Task_Versions')?['sdh_startdate']",
+                                  "item/sdh_finishdatebefore": "@first(body('FLT_Previous_Task'))?['sdh_finishdate']",
+                                  "item/sdh_finishdateafter": "@items('APPLY_Current_Task_Versions')?['sdh_finishdate']",
+                                  "item/sdh_durationdaysbefore": "@first(body('FLT_Previous_Task'))?['sdh_durationdays']",
+                                  "item/sdh_durationdaysafter": "@items('APPLY_Current_Task_Versions')?['sdh_durationdays']",
+                                  "item/sdh_durationhoursbefore": "@first(body('FLT_Previous_Task'))?['sdh_durationhours']",
+                                  "item/sdh_durationhoursafter": "@items('APPLY_Current_Task_Versions')?['sdh_durationhours']",
+                                  "item/sdh_percentcompletebefore": "@first(body('FLT_Previous_Task'))?['sdh_percentcomplete']",
+                                  "item/sdh_percentcompleteafter": "@items('APPLY_Current_Task_Versions')?['sdh_percentcomplete']",
+                                  "item/sdh_criticalbefore": "@first(body('FLT_Previous_Task'))?['sdh_iscritical']",
+                                  "item/sdh_criticalafter": "@items('APPLY_Current_Task_Versions')?['sdh_iscritical']",
+                                  "item/sdh_wbsbefore": "@first(body('FLT_Previous_Task'))?['sdh_wbs']",
+                                  "item/sdh_wbsafter": "@items('APPLY_Current_Task_Versions')?['sdh_wbs']",
+                                  "item/sdh_startchanged": "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_startdate']), string(items('APPLY_Current_Task_Versions')?['sdh_startdate'])))",
+                                  "item/sdh_finishchanged": "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_finishdate']), string(items('APPLY_Current_Task_Versions')?['sdh_finishdate'])))",
+                                  "item/sdh_durationchanged": "@not(equals(float(coalesce(first(body('FLT_Previous_Task'))?['sdh_durationdays'],0)), float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationdays'],0))))",
+                                  "item/sdh_progresschanged": "@not(equals(float(coalesce(first(body('FLT_Previous_Task'))?['sdh_percentcomplete'],0)), float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_percentcomplete'],0))))",
+                                  "item/sdh_criticalitychanged": "@not(equals(bool(coalesce(first(body('FLT_Previous_Task'))?['sdh_iscritical'],false)), bool(coalesce(items('APPLY_Current_Task_Versions')?['sdh_iscritical'],false))))",
+                                  "item/sdh_wbschanged": "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_wbs']), string(items('APPLY_Current_Task_Versions')?['sdh_wbs'])))",
+                                  "item/sdh_activitycodeschanged": false,
+                                  "item/sdh_startdeltadays": "@if(or(empty(first(body('FLT_Previous_Task'))?['sdh_startdate']),empty(items('APPLY_Current_Task_Versions')?['sdh_startdate'])),null,div(sub(ticks(items('APPLY_Current_Task_Versions')?['sdh_startdate']),ticks(first(body('FLT_Previous_Task'))?['sdh_startdate'])),864000000000))",
+                                  "item/sdh_finishdeltadays": "@if(or(empty(first(body('FLT_Previous_Task'))?['sdh_finishdate']),empty(items('APPLY_Current_Task_Versions')?['sdh_finishdate'])),null,div(sub(ticks(items('APPLY_Current_Task_Versions')?['sdh_finishdate']),ticks(first(body('FLT_Previous_Task'))?['sdh_finishdate'])),864000000000))",
+                                  "item/sdh_durationdaysdelta": "@sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationdays'],0)),float(coalesce(first(body('FLT_Previous_Task'))?['sdh_durationdays'],0)))",
+                                  "item/sdh_durationhoursdelta": "@sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationhours'],0)),float(coalesce(first(body('FLT_Previous_Task'))?['sdh_durationhours'],0)))",
+                                  "item/sdh_progressdelta": "@string(sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_percentcomplete'],0)),float(coalesce(first(body('FLT_Previous_Task'))?['sdh_percentcomplete'],0))))",
+                                  "item/sdh_notes": "Generated by SDH - 03 using deterministic task key comparison. Change type: Changed."
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "runAfter": {},
+                          "expression": {
+                            "greater": [
+                              "@length(body('FLT_Existing_Variance_Changed'))",
+                              0
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "7e22a94b-0cdc-4d84-9fb5-a72f22125683"
+                          },
+                          "type": "If",
+                          "else": {
+                            "actions": {
+                              "ADD_Changed_Variance": {
+                                "runAfter": {},
+                                "metadata": {
+                                  "operationMetadataId": "98c8e710-dd74-4906-9d8c-2c080d6dbde6"
+                                },
+                                "type": "OpenApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "connectionName": "shared_commondataserviceforapps",
+                                    "operationId": "CreateRecord",
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                                  },
+                                  "parameters": {
+                                    "entityName": "sdh_weeklyvariances",
+                                    "item/sdh_variancename": "@concat('Changed - U', coalesce(items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'],first(body('FLT_Previous_Task'))?['sdh_taskuniqueid']), ' - ', outputs('CMP_Previous_Snapshot_Date'), ' to ', outputs('CMP_Current_Snapshot_Date'))",
+                                    "item/sdh_key": "@outputs('CMP_Variance_Key_Changed')",
+                                    "item/sdh_primarychangetype": 232400003,
+                                    "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                                    "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                                    "item/sdh_FromSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Previous_Snapshot_ID'), ')')",
+                                    "item/sdh_ToSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                                    "item/sdh_ScheduleTask@odata.bind": "@concat('sdh_scheduletasks(', coalesce(items('APPLY_Current_Task_Versions')?['_sdh_scheduletask_value'],first(body('FLT_Previous_Task'))?['_sdh_scheduletask_value']), ')')",
+                                    "item/sdh_startdatebefore": "@first(body('FLT_Previous_Task'))?['sdh_startdate']",
+                                    "item/sdh_startdateafter": "@items('APPLY_Current_Task_Versions')?['sdh_startdate']",
+                                    "item/sdh_finishdatebefore": "@first(body('FLT_Previous_Task'))?['sdh_finishdate']",
+                                    "item/sdh_finishdateafter": "@items('APPLY_Current_Task_Versions')?['sdh_finishdate']",
+                                    "item/sdh_durationdaysbefore": "@first(body('FLT_Previous_Task'))?['sdh_durationdays']",
+                                    "item/sdh_durationdaysafter": "@items('APPLY_Current_Task_Versions')?['sdh_durationdays']",
+                                    "item/sdh_durationhoursbefore": "@first(body('FLT_Previous_Task'))?['sdh_durationhours']",
+                                    "item/sdh_durationhoursafter": "@items('APPLY_Current_Task_Versions')?['sdh_durationhours']",
+                                    "item/sdh_percentcompletebefore": "@first(body('FLT_Previous_Task'))?['sdh_percentcomplete']",
+                                    "item/sdh_percentcompleteafter": "@items('APPLY_Current_Task_Versions')?['sdh_percentcomplete']",
+                                    "item/sdh_criticalbefore": "@first(body('FLT_Previous_Task'))?['sdh_iscritical']",
+                                    "item/sdh_criticalafter": "@items('APPLY_Current_Task_Versions')?['sdh_iscritical']",
+                                    "item/sdh_wbsbefore": "@first(body('FLT_Previous_Task'))?['sdh_wbs']",
+                                    "item/sdh_wbsafter": "@items('APPLY_Current_Task_Versions')?['sdh_wbs']",
+                                    "item/sdh_startchanged": "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_startdate']), string(items('APPLY_Current_Task_Versions')?['sdh_startdate'])))",
+                                    "item/sdh_finishchanged": "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_finishdate']), string(items('APPLY_Current_Task_Versions')?['sdh_finishdate'])))",
+                                    "item/sdh_durationchanged": "@not(equals(float(coalesce(first(body('FLT_Previous_Task'))?['sdh_durationdays'],0)), float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationdays'],0))))",
+                                    "item/sdh_progresschanged": "@not(equals(float(coalesce(first(body('FLT_Previous_Task'))?['sdh_percentcomplete'],0)), float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_percentcomplete'],0))))",
+                                    "item/sdh_criticalitychanged": "@not(equals(bool(coalesce(first(body('FLT_Previous_Task'))?['sdh_iscritical'],false)), bool(coalesce(items('APPLY_Current_Task_Versions')?['sdh_iscritical'],false))))",
+                                    "item/sdh_wbschanged": "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_wbs']), string(items('APPLY_Current_Task_Versions')?['sdh_wbs'])))",
+                                    "item/sdh_activitycodeschanged": false,
+                                    "item/sdh_startdeltadays": "@if(or(empty(first(body('FLT_Previous_Task'))?['sdh_startdate']),empty(items('APPLY_Current_Task_Versions')?['sdh_startdate'])),null,div(sub(ticks(items('APPLY_Current_Task_Versions')?['sdh_startdate']),ticks(first(body('FLT_Previous_Task'))?['sdh_startdate'])),864000000000))",
+                                    "item/sdh_finishdeltadays": "@if(or(empty(first(body('FLT_Previous_Task'))?['sdh_finishdate']),empty(items('APPLY_Current_Task_Versions')?['sdh_finishdate'])),null,div(sub(ticks(items('APPLY_Current_Task_Versions')?['sdh_finishdate']),ticks(first(body('FLT_Previous_Task'))?['sdh_finishdate'])),864000000000))",
+                                    "item/sdh_durationdaysdelta": "@sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationdays'],0)),float(coalesce(first(body('FLT_Previous_Task'))?['sdh_durationdays'],0)))",
+                                    "item/sdh_durationhoursdelta": "@sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationhours'],0)),float(coalesce(first(body('FLT_Previous_Task'))?['sdh_durationhours'],0)))",
+                                    "item/sdh_progressdelta": "@string(sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_percentcomplete'],0)),float(coalesce(first(body('FLT_Previous_Task'))?['sdh_percentcomplete'],0))))",
+                                    "item/sdh_notes": "Generated by SDH - 03 using deterministic task key comparison. Change type: Changed."
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "FLT_Existing_Variance_Changed": [
+                          "Succeeded"
+                        ]
+                      },
+                      "expression": {
+                        "or": [
+                          "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_startdate']), string(items('APPLY_Current_Task_Versions')?['sdh_startdate'])))",
+                          "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_finishdate']), string(items('APPLY_Current_Task_Versions')?['sdh_finishdate'])))",
+                          "@not(equals(float(coalesce(first(body('FLT_Previous_Task'))?['sdh_durationdays'],0)), float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationdays'],0))))",
+                          "@not(equals(float(coalesce(first(body('FLT_Previous_Task'))?['sdh_percentcomplete'],0)), float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_percentcomplete'],0))))",
+                          "@not(equals(bool(coalesce(first(body('FLT_Previous_Task'))?['sdh_iscritical'],false)), bool(coalesce(items('APPLY_Current_Task_Versions')?['sdh_iscritical'],false))))",
+                          "@not(equals(string(first(body('FLT_Previous_Task'))?['sdh_wbs']), string(items('APPLY_Current_Task_Versions')?['sdh_wbs'])))"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "6c1e178d-cb90-4fbf-bd89-107e5d621437"
+                      },
+                      "type": "If",
+                      "else": {
+                        "actions": {}
+                      }
+                    },
+                    "COND_Task_Was_Planned": {
+                      "actions": {
+                        "INC_PPC_Planned": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "1a73b3dd-cd27-4448-bd8d-1a23b7a77b88"
+                          },
+                          "type": "IncrementVariable",
+                          "inputs": {
+                            "name": "VAR_PPC_Planned",
+                            "value": 1
+                          }
+                        },
+                        "CMP_PPC_Was_Completed": {
+                          "runAfter": {
+                            "INC_PPC_Planned": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "824a58e8-03fa-4fcb-90ab-ad319f0c4b37"
+                          },
+                          "type": "Compose",
+                          "inputs": "@or(equals(bool(coalesce(items('APPLY_Current_Task_Versions')?['sdh_iscompleted'],false)),true),and(not(empty(items('APPLY_Current_Task_Versions')?['sdh_actualfinish'])),lessOrEquals(ticks(items('APPLY_Current_Task_Versions')?['sdh_actualfinish']),ticks(outputs('CMP_Current_Status_Date')))))"
+                        },
+                        "COND_Increment_PPC_Completed": {
+                          "actions": {
+                            "INC_PPC_Completed": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "00e61744-235d-4ccb-be52-ef5ecc31b467"
+                              },
+                              "type": "IncrementVariable",
+                              "inputs": {
+                                "name": "VAR_PPC_Completed",
+                                "value": 1
+                              }
+                            }
+                          },
+                          "runAfter": {
+                            "CMP_PPC_Was_Completed": [
+                              "Succeeded"
+                            ]
+                          },
+                          "expression": {
+                            "equals": [
+                              "@outputs('CMP_PPC_Was_Completed')",
+                              true
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "c103dcae-2357-4dc5-89d1-7060cc71b13c"
+                          },
+                          "type": "If",
+                          "else": {
+                            "actions": {}
+                          }
+                        },
+                        "CMP_PPC_Key": {
+                          "runAfter": {
+                            "COND_Increment_PPC_Completed": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "07a80222-0c26-4607-881e-0aacd890b722"
+                          },
+                          "type": "Compose",
+                          "inputs": "@concat('PPC_', outputs('CMP_Project_Number'), '_', outputs('CMP_Previous_Date_Key'), '_', outputs('CMP_Current_Date_Key'), '_U', items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'])"
+                        },
+                        "FLT_Existing_PPC_Row": {
+                          "runAfter": {
+                            "CMP_PPC_Key": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "5c17bc77-e113-4273-85c5-7c469c0cf86d"
+                          },
+                          "type": "Query",
+                          "inputs": {
+                            "from": "@body('LST_Existing_PPC_Rows')?['value']",
+                            "where": "@equals(item()?['sdh_key'], outputs('CMP_PPC_Key'))"
+                          }
+                        },
+                        "COND_PPC_Row_Exists": {
+                          "actions": {
+                            "UPD_PPC_Row": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "846af930-1ba7-4625-b68a-a8c660adf8dd"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connectionName": "shared_commondataserviceforapps",
+                                  "operationId": "UpdateOnlyRecord",
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                                },
+                                "parameters": {
+                                  "entityName": "sdh_ppcresults",
+                                  "recordId": "@first(body('FLT_Existing_PPC_Row'))?['sdh_ppcresultid']",
+                                  "item/sdh_ppcresultname": "@concat('PPC U', items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'], ' - ', outputs('CMP_Previous_Snapshot_Date'), ' to ', outputs('CMP_Current_Snapshot_Date'))",
+                                  "item/sdh_key": "@outputs('CMP_PPC_Key')",
+                                  "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                                  "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                                  "item/sdh_FromSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Previous_Snapshot_ID'), ')')",
+                                  "item/sdh_ToSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                                  "item/sdh_ScheduleTask@odata.bind": "@concat('sdh_scheduletasks(', items('APPLY_Current_Task_Versions')?['_sdh_scheduletask_value'], ')')",
+                                  "item/sdh_TaskVersionPlanned@odata.bind": "@concat('sdh_scheduletaskversions(', first(body('FLT_Previous_Task'))?['sdh_scheduletaskversionid'], ')')",
+                                  "item/sdh_TaskVersionCompleted@odata.bind": "@concat('sdh_scheduletaskversions(', items('APPLY_Current_Task_Versions')?['sdh_scheduletaskversionid'], ')')",
+                                  "item/sdh_planningweekstart": "@outputs('CMP_Previous_Status_Date')",
+                                  "item/sdh_planningweekend": "@outputs('CMP_Current_Status_Date')",
+                                  "item/sdh_plannedfinishdate": "@first(body('FLT_Previous_Task'))?['sdh_finishdate']",
+                                  "item/sdh_actualfinishdate": "@items('APPLY_Current_Task_Versions')?['sdh_actualfinish']",
+                                  "item/sdh_wasplanned": true,
+                                  "item/sdh_wascompleted": "@outputs('CMP_PPC_Was_Completed')",
+                                  "item/sdh_ppcstatus": "@if(outputs('CMP_PPC_Was_Completed'),232400001,232400002)",
+                                  "item/sdh_reason": "@if(outputs('CMP_PPC_Was_Completed'),'Planned task completed by the current status date.','Planned task was not completed by the current status date.')"
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          },
+                          "runAfter": {
+                            "FLT_Existing_PPC_Row": [
+                              "Succeeded"
+                            ]
+                          },
+                          "expression": {
+                            "greater": [
+                              "@length(body('FLT_Existing_PPC_Row'))",
+                              0
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "f1d59e51-ace9-44b2-8356-35e104690c4d"
+                          },
+                          "type": "If",
+                          "else": {
+                            "actions": {
+                              "ADD_PPC_Row": {
+                                "runAfter": {},
+                                "metadata": {
+                                  "operationMetadataId": "f3f5871b-a577-4811-a5dc-af49fb1369f6"
+                                },
+                                "type": "OpenApiConnection",
+                                "inputs": {
+                                  "host": {
+                                    "connectionName": "shared_commondataserviceforapps",
+                                    "operationId": "CreateRecord",
+                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                                  },
+                                  "parameters": {
+                                    "entityName": "sdh_ppcresults",
+                                    "item/sdh_ppcresultname": "@concat('PPC U', items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'], ' - ', outputs('CMP_Previous_Snapshot_Date'), ' to ', outputs('CMP_Current_Snapshot_Date'))",
+                                    "item/sdh_key": "@outputs('CMP_PPC_Key')",
+                                    "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                                    "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                                    "item/sdh_FromSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Previous_Snapshot_ID'), ')')",
+                                    "item/sdh_ToSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                                    "item/sdh_ScheduleTask@odata.bind": "@concat('sdh_scheduletasks(', items('APPLY_Current_Task_Versions')?['_sdh_scheduletask_value'], ')')",
+                                    "item/sdh_TaskVersionPlanned@odata.bind": "@concat('sdh_scheduletaskversions(', first(body('FLT_Previous_Task'))?['sdh_scheduletaskversionid'], ')')",
+                                    "item/sdh_TaskVersionCompleted@odata.bind": "@concat('sdh_scheduletaskversions(', items('APPLY_Current_Task_Versions')?['sdh_scheduletaskversionid'], ')')",
+                                    "item/sdh_planningweekstart": "@outputs('CMP_Previous_Status_Date')",
+                                    "item/sdh_planningweekend": "@outputs('CMP_Current_Status_Date')",
+                                    "item/sdh_plannedfinishdate": "@first(body('FLT_Previous_Task'))?['sdh_finishdate']",
+                                    "item/sdh_actualfinishdate": "@items('APPLY_Current_Task_Versions')?['sdh_actualfinish']",
+                                    "item/sdh_wasplanned": true,
+                                    "item/sdh_wascompleted": "@outputs('CMP_PPC_Was_Completed')",
+                                    "item/sdh_ppcstatus": "@if(outputs('CMP_PPC_Was_Completed'),232400001,232400002)",
+                                    "item/sdh_reason": "@if(outputs('CMP_PPC_Was_Completed'),'Planned task completed by the current status date.','Planned task was not completed by the current status date.')"
+                                  },
+                                  "authentication": "@parameters('$authentication')"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "COND_Task_Changed": [
+                          "Succeeded"
+                        ]
+                      },
+                      "expression": {
+                        "and": [
+                          "@not(equals(bool(coalesce(first(body('FLT_Previous_Task'))?['sdh_issummary'],false)), true))",
+                          "@not(equals(bool(coalesce(first(body('FLT_Previous_Task'))?['sdh_iscompleted'],false)), true))",
+                          "@not(empty(first(body('FLT_Previous_Task'))?['sdh_finishdate']))",
+                          "@greater(ticks(first(body('FLT_Previous_Task'))?['sdh_finishdate']), ticks(outputs('CMP_Previous_Status_Date')))",
+                          "@lessOrEquals(ticks(first(body('FLT_Previous_Task'))?['sdh_finishdate']), ticks(outputs('CMP_Current_Status_Date')))"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "9e777512-05ba-4792-8da9-2398b0f66285"
+                      },
+                      "type": "If",
+                      "else": {
+                        "actions": {}
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "FLT_Previous_Task": [
+                      "Succeeded"
+                    ]
+                  },
+                  "expression": {
+                    "greater": [
+                      "@length(body('FLT_Previous_Task'))",
+                      0
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "58ecc5d3-f4a6-41f2-a5e0-621be9606c72"
+                  },
+                  "type": "If",
+                  "else": {
+                    "actions": {
+                      "CMP_Variance_Key_Added": {
+                        "runAfter": {},
+                        "metadata": {
+                          "operationMetadataId": "336a548c-a0ef-4482-85dc-79355aeb4d98"
+                        },
+                        "type": "Compose",
+                        "inputs": "@concat('VAR_', outputs('CMP_Project_Number'), '_', outputs('CMP_Previous_Date_Key'), '_', outputs('CMP_Current_Date_Key'), '_U', items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'])"
+                      },
+                      "FLT_Existing_Variance_Added": {
+                        "runAfter": {
+                          "CMP_Variance_Key_Added": [
+                            "Succeeded"
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "51b99d53-c65f-4d5e-90d1-344c00929682"
+                        },
+                        "type": "Query",
+                        "inputs": {
+                          "from": "@body('LST_Existing_Variances')?['value']",
+                          "where": "@equals(item()?['sdh_key'], outputs('CMP_Variance_Key_Added'))"
+                        }
+                      },
+                      "COND_Added_Variance_Exists": {
+                        "actions": {
+                          "UPD_Added_Variance": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "0fabef5c-159b-4eca-a6a3-76ae24590364"
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connectionName": "shared_commondataserviceforapps",
+                                "operationId": "UpdateOnlyRecord",
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                              },
+                              "parameters": {
+                                "entityName": "sdh_weeklyvariances",
+                                "recordId": "@first(body('FLT_Existing_Variance_Added'))?['sdh_weeklyvarianceid']",
+                                "item/sdh_variancename": "@concat('Added - U', coalesce(items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'],json('{}')?['sdh_taskuniqueid']), ' - ', outputs('CMP_Previous_Snapshot_Date'), ' to ', outputs('CMP_Current_Snapshot_Date'))",
+                                "item/sdh_key": "@outputs('CMP_Variance_Key_Added')",
+                                "item/sdh_primarychangetype": 232400001,
+                                "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                                "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                                "item/sdh_FromSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Previous_Snapshot_ID'), ')')",
+                                "item/sdh_ToSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                                "item/sdh_ScheduleTask@odata.bind": "@concat('sdh_scheduletasks(', coalesce(items('APPLY_Current_Task_Versions')?['_sdh_scheduletask_value'],json('{}')?['_sdh_scheduletask_value']), ')')",
+                                "item/sdh_startdatebefore": "@json('{}')?['sdh_startdate']",
+                                "item/sdh_startdateafter": "@items('APPLY_Current_Task_Versions')?['sdh_startdate']",
+                                "item/sdh_finishdatebefore": "@json('{}')?['sdh_finishdate']",
+                                "item/sdh_finishdateafter": "@items('APPLY_Current_Task_Versions')?['sdh_finishdate']",
+                                "item/sdh_durationdaysbefore": "@json('{}')?['sdh_durationdays']",
+                                "item/sdh_durationdaysafter": "@items('APPLY_Current_Task_Versions')?['sdh_durationdays']",
+                                "item/sdh_durationhoursbefore": "@json('{}')?['sdh_durationhours']",
+                                "item/sdh_durationhoursafter": "@items('APPLY_Current_Task_Versions')?['sdh_durationhours']",
+                                "item/sdh_percentcompletebefore": "@json('{}')?['sdh_percentcomplete']",
+                                "item/sdh_percentcompleteafter": "@items('APPLY_Current_Task_Versions')?['sdh_percentcomplete']",
+                                "item/sdh_criticalbefore": "@json('{}')?['sdh_iscritical']",
+                                "item/sdh_criticalafter": "@items('APPLY_Current_Task_Versions')?['sdh_iscritical']",
+                                "item/sdh_wbsbefore": "@json('{}')?['sdh_wbs']",
+                                "item/sdh_wbsafter": "@items('APPLY_Current_Task_Versions')?['sdh_wbs']",
+                                "item/sdh_startchanged": true,
+                                "item/sdh_finishchanged": true,
+                                "item/sdh_durationchanged": true,
+                                "item/sdh_progresschanged": true,
+                                "item/sdh_criticalitychanged": true,
+                                "item/sdh_wbschanged": true,
+                                "item/sdh_activitycodeschanged": false,
+                                "item/sdh_startdeltadays": "@if(or(empty(json('{}')?['sdh_startdate']),empty(items('APPLY_Current_Task_Versions')?['sdh_startdate'])),null,div(sub(ticks(items('APPLY_Current_Task_Versions')?['sdh_startdate']),ticks(json('{}')?['sdh_startdate'])),864000000000))",
+                                "item/sdh_finishdeltadays": "@if(or(empty(json('{}')?['sdh_finishdate']),empty(items('APPLY_Current_Task_Versions')?['sdh_finishdate'])),null,div(sub(ticks(items('APPLY_Current_Task_Versions')?['sdh_finishdate']),ticks(json('{}')?['sdh_finishdate'])),864000000000))",
+                                "item/sdh_durationdaysdelta": "@sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationdays'],0)),float(coalesce(json('{}')?['sdh_durationdays'],0)))",
+                                "item/sdh_durationhoursdelta": "@sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationhours'],0)),float(coalesce(json('{}')?['sdh_durationhours'],0)))",
+                                "item/sdh_progressdelta": "@string(sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_percentcomplete'],0)),float(coalesce(json('{}')?['sdh_percentcomplete'],0))))",
+                                "item/sdh_notes": "Generated by SDH - 03 using deterministic task key comparison. Change type: Added."
+                              },
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          }
+                        },
+                        "runAfter": {
+                          "FLT_Existing_Variance_Added": [
+                            "Succeeded"
+                          ]
+                        },
+                        "expression": {
+                          "greater": [
+                            "@length(body('FLT_Existing_Variance_Added'))",
+                            0
+                          ]
+                        },
+                        "metadata": {
+                          "operationMetadataId": "9159fe39-c253-4d9b-ae35-2655105d52ff"
+                        },
+                        "type": "If",
+                        "else": {
+                          "actions": {
+                            "ADD_Added_Variance": {
+                              "runAfter": {},
+                              "metadata": {
+                                "operationMetadataId": "7c1d8ad0-d1ab-45d6-a4b6-3e4c900579d7"
+                              },
+                              "type": "OpenApiConnection",
+                              "inputs": {
+                                "host": {
+                                  "connectionName": "shared_commondataserviceforapps",
+                                  "operationId": "CreateRecord",
+                                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                                },
+                                "parameters": {
+                                  "entityName": "sdh_weeklyvariances",
+                                  "item/sdh_variancename": "@concat('Added - U', coalesce(items('APPLY_Current_Task_Versions')?['sdh_taskuniqueid'],json('{}')?['sdh_taskuniqueid']), ' - ', outputs('CMP_Previous_Snapshot_Date'), ' to ', outputs('CMP_Current_Snapshot_Date'))",
+                                  "item/sdh_key": "@outputs('CMP_Variance_Key_Added')",
+                                  "item/sdh_primarychangetype": 232400001,
+                                  "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                                  "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                                  "item/sdh_FromSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Previous_Snapshot_ID'), ')')",
+                                  "item/sdh_ToSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                                  "item/sdh_ScheduleTask@odata.bind": "@concat('sdh_scheduletasks(', coalesce(items('APPLY_Current_Task_Versions')?['_sdh_scheduletask_value'],json('{}')?['_sdh_scheduletask_value']), ')')",
+                                  "item/sdh_startdatebefore": "@json('{}')?['sdh_startdate']",
+                                  "item/sdh_startdateafter": "@items('APPLY_Current_Task_Versions')?['sdh_startdate']",
+                                  "item/sdh_finishdatebefore": "@json('{}')?['sdh_finishdate']",
+                                  "item/sdh_finishdateafter": "@items('APPLY_Current_Task_Versions')?['sdh_finishdate']",
+                                  "item/sdh_durationdaysbefore": "@json('{}')?['sdh_durationdays']",
+                                  "item/sdh_durationdaysafter": "@items('APPLY_Current_Task_Versions')?['sdh_durationdays']",
+                                  "item/sdh_durationhoursbefore": "@json('{}')?['sdh_durationhours']",
+                                  "item/sdh_durationhoursafter": "@items('APPLY_Current_Task_Versions')?['sdh_durationhours']",
+                                  "item/sdh_percentcompletebefore": "@json('{}')?['sdh_percentcomplete']",
+                                  "item/sdh_percentcompleteafter": "@items('APPLY_Current_Task_Versions')?['sdh_percentcomplete']",
+                                  "item/sdh_criticalbefore": "@json('{}')?['sdh_iscritical']",
+                                  "item/sdh_criticalafter": "@items('APPLY_Current_Task_Versions')?['sdh_iscritical']",
+                                  "item/sdh_wbsbefore": "@json('{}')?['sdh_wbs']",
+                                  "item/sdh_wbsafter": "@items('APPLY_Current_Task_Versions')?['sdh_wbs']",
+                                  "item/sdh_startchanged": true,
+                                  "item/sdh_finishchanged": true,
+                                  "item/sdh_durationchanged": true,
+                                  "item/sdh_progresschanged": true,
+                                  "item/sdh_criticalitychanged": true,
+                                  "item/sdh_wbschanged": true,
+                                  "item/sdh_activitycodeschanged": false,
+                                  "item/sdh_startdeltadays": "@if(or(empty(json('{}')?['sdh_startdate']),empty(items('APPLY_Current_Task_Versions')?['sdh_startdate'])),null,div(sub(ticks(items('APPLY_Current_Task_Versions')?['sdh_startdate']),ticks(json('{}')?['sdh_startdate'])),864000000000))",
+                                  "item/sdh_finishdeltadays": "@if(or(empty(json('{}')?['sdh_finishdate']),empty(items('APPLY_Current_Task_Versions')?['sdh_finishdate'])),null,div(sub(ticks(items('APPLY_Current_Task_Versions')?['sdh_finishdate']),ticks(json('{}')?['sdh_finishdate'])),864000000000))",
+                                  "item/sdh_durationdaysdelta": "@sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationdays'],0)),float(coalesce(json('{}')?['sdh_durationdays'],0)))",
+                                  "item/sdh_durationhoursdelta": "@sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_durationhours'],0)),float(coalesce(json('{}')?['sdh_durationhours'],0)))",
+                                  "item/sdh_progressdelta": "@string(sub(float(coalesce(items('APPLY_Current_Task_Versions')?['sdh_percentcomplete'],0)),float(coalesce(json('{}')?['sdh_percentcomplete'],0))))",
+                                  "item/sdh_notes": "Generated by SDH - 03 using deterministic task key comparison. Change type: Added."
+                                },
+                                "authentication": "@parameters('$authentication')"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "foreach": "@body('LST_Current_Task_Versions')?['value']",
+              "runAfter": {
+                "RESP_Variance_Accepted": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "66508ecf-3f5c-41be-8e4e-ac7853f9ff8d"
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              }
+            },
+            "APPLY_Previous_Task_Versions": {
+              "actions": {
+                "FLT_Current_Task": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "a1270c49-3c66-42d9-9463-35c705b873af"
+                  },
+                  "type": "Query",
+                  "inputs": {
+                    "from": "@body('LST_Current_Task_Versions')?['value']",
+                    "where": "@equals(string(item()?['sdh_taskuniqueid']), string(items('APPLY_Previous_Task_Versions')?['sdh_taskuniqueid']))"
+                  }
+                },
+                "COND_Task_Removed": {
+                  "actions": {
+                    "CMP_Variance_Key_Removed": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "0dba7464-cd2d-406d-8c4d-c31edb2f15a2"
+                      },
+                      "type": "Compose",
+                      "inputs": "@concat('VAR_', outputs('CMP_Project_Number'), '_', outputs('CMP_Previous_Date_Key'), '_', outputs('CMP_Current_Date_Key'), '_U', items('APPLY_Previous_Task_Versions')?['sdh_taskuniqueid'])"
+                    },
+                    "FLT_Existing_Variance_Removed": {
+                      "runAfter": {
+                        "CMP_Variance_Key_Removed": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "c479bf14-be53-4a8d-85ae-86f506e18657"
+                      },
+                      "type": "Query",
+                      "inputs": {
+                        "from": "@body('LST_Existing_Variances')?['value']",
+                        "where": "@equals(item()?['sdh_key'], outputs('CMP_Variance_Key_Removed'))"
+                      }
+                    },
+                    "COND_Removed_Variance_Exists": {
+                      "actions": {
+                        "UPD_Removed_Variance": {
+                          "runAfter": {},
+                          "metadata": {
+                            "operationMetadataId": "ab2c805a-988a-473a-9eeb-3528ad25db7d"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_commondataserviceforapps",
+                              "operationId": "UpdateOnlyRecord",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                            },
+                            "parameters": {
+                              "entityName": "sdh_weeklyvariances",
+                              "recordId": "@first(body('FLT_Existing_Variance_Removed'))?['sdh_weeklyvarianceid']",
+                              "item/sdh_variancename": "@concat('Removed - U', coalesce(json('{}')?['sdh_taskuniqueid'],items('APPLY_Previous_Task_Versions')?['sdh_taskuniqueid']), ' - ', outputs('CMP_Previous_Snapshot_Date'), ' to ', outputs('CMP_Current_Snapshot_Date'))",
+                              "item/sdh_key": "@outputs('CMP_Variance_Key_Removed')",
+                              "item/sdh_primarychangetype": 232400002,
+                              "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                              "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                              "item/sdh_FromSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Previous_Snapshot_ID'), ')')",
+                              "item/sdh_ToSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                              "item/sdh_ScheduleTask@odata.bind": "@concat('sdh_scheduletasks(', coalesce(json('{}')?['_sdh_scheduletask_value'],items('APPLY_Previous_Task_Versions')?['_sdh_scheduletask_value']), ')')",
+                              "item/sdh_startdatebefore": "@items('APPLY_Previous_Task_Versions')?['sdh_startdate']",
+                              "item/sdh_startdateafter": "@json('{}')?['sdh_startdate']",
+                              "item/sdh_finishdatebefore": "@items('APPLY_Previous_Task_Versions')?['sdh_finishdate']",
+                              "item/sdh_finishdateafter": "@json('{}')?['sdh_finishdate']",
+                              "item/sdh_durationdaysbefore": "@items('APPLY_Previous_Task_Versions')?['sdh_durationdays']",
+                              "item/sdh_durationdaysafter": "@json('{}')?['sdh_durationdays']",
+                              "item/sdh_durationhoursbefore": "@items('APPLY_Previous_Task_Versions')?['sdh_durationhours']",
+                              "item/sdh_durationhoursafter": "@json('{}')?['sdh_durationhours']",
+                              "item/sdh_percentcompletebefore": "@items('APPLY_Previous_Task_Versions')?['sdh_percentcomplete']",
+                              "item/sdh_percentcompleteafter": "@json('{}')?['sdh_percentcomplete']",
+                              "item/sdh_criticalbefore": "@items('APPLY_Previous_Task_Versions')?['sdh_iscritical']",
+                              "item/sdh_criticalafter": "@json('{}')?['sdh_iscritical']",
+                              "item/sdh_wbsbefore": "@items('APPLY_Previous_Task_Versions')?['sdh_wbs']",
+                              "item/sdh_wbsafter": "@json('{}')?['sdh_wbs']",
+                              "item/sdh_startchanged": true,
+                              "item/sdh_finishchanged": true,
+                              "item/sdh_durationchanged": true,
+                              "item/sdh_progresschanged": true,
+                              "item/sdh_criticalitychanged": true,
+                              "item/sdh_wbschanged": true,
+                              "item/sdh_activitycodeschanged": false,
+                              "item/sdh_startdeltadays": "@if(or(empty(items('APPLY_Previous_Task_Versions')?['sdh_startdate']),empty(json('{}')?['sdh_startdate'])),null,div(sub(ticks(json('{}')?['sdh_startdate']),ticks(items('APPLY_Previous_Task_Versions')?['sdh_startdate'])),864000000000))",
+                              "item/sdh_finishdeltadays": "@if(or(empty(items('APPLY_Previous_Task_Versions')?['sdh_finishdate']),empty(json('{}')?['sdh_finishdate'])),null,div(sub(ticks(json('{}')?['sdh_finishdate']),ticks(items('APPLY_Previous_Task_Versions')?['sdh_finishdate'])),864000000000))",
+                              "item/sdh_durationdaysdelta": "@sub(float(coalesce(json('{}')?['sdh_durationdays'],0)),float(coalesce(items('APPLY_Previous_Task_Versions')?['sdh_durationdays'],0)))",
+                              "item/sdh_durationhoursdelta": "@sub(float(coalesce(json('{}')?['sdh_durationhours'],0)),float(coalesce(items('APPLY_Previous_Task_Versions')?['sdh_durationhours'],0)))",
+                              "item/sdh_progressdelta": "@string(sub(float(coalesce(json('{}')?['sdh_percentcomplete'],0)),float(coalesce(items('APPLY_Previous_Task_Versions')?['sdh_percentcomplete'],0))))",
+                              "item/sdh_notes": "Generated by SDH - 03 using deterministic task key comparison. Change type: Removed."
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "FLT_Existing_Variance_Removed": [
+                          "Succeeded"
+                        ]
+                      },
+                      "expression": {
+                        "greater": [
+                          "@length(body('FLT_Existing_Variance_Removed'))",
+                          0
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "2cd6e21f-ae3d-4163-a32f-014803a6543d"
+                      },
+                      "type": "If",
+                      "else": {
+                        "actions": {
+                          "ADD_Removed_Variance": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "f464374b-6a37-4cbc-8c9d-0cdec234fc32"
+                            },
+                            "type": "OpenApiConnection",
+                            "inputs": {
+                              "host": {
+                                "connectionName": "shared_commondataserviceforapps",
+                                "operationId": "CreateRecord",
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                              },
+                              "parameters": {
+                                "entityName": "sdh_weeklyvariances",
+                                "item/sdh_variancename": "@concat('Removed - U', coalesce(json('{}')?['sdh_taskuniqueid'],items('APPLY_Previous_Task_Versions')?['sdh_taskuniqueid']), ' - ', outputs('CMP_Previous_Snapshot_Date'), ' to ', outputs('CMP_Current_Snapshot_Date'))",
+                                "item/sdh_key": "@outputs('CMP_Variance_Key_Removed')",
+                                "item/sdh_primarychangetype": 232400002,
+                                "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                                "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                                "item/sdh_FromSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Previous_Snapshot_ID'), ')')",
+                                "item/sdh_ToSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                                "item/sdh_ScheduleTask@odata.bind": "@concat('sdh_scheduletasks(', coalesce(json('{}')?['_sdh_scheduletask_value'],items('APPLY_Previous_Task_Versions')?['_sdh_scheduletask_value']), ')')",
+                                "item/sdh_startdatebefore": "@items('APPLY_Previous_Task_Versions')?['sdh_startdate']",
+                                "item/sdh_startdateafter": "@json('{}')?['sdh_startdate']",
+                                "item/sdh_finishdatebefore": "@items('APPLY_Previous_Task_Versions')?['sdh_finishdate']",
+                                "item/sdh_finishdateafter": "@json('{}')?['sdh_finishdate']",
+                                "item/sdh_durationdaysbefore": "@items('APPLY_Previous_Task_Versions')?['sdh_durationdays']",
+                                "item/sdh_durationdaysafter": "@json('{}')?['sdh_durationdays']",
+                                "item/sdh_durationhoursbefore": "@items('APPLY_Previous_Task_Versions')?['sdh_durationhours']",
+                                "item/sdh_durationhoursafter": "@json('{}')?['sdh_durationhours']",
+                                "item/sdh_percentcompletebefore": "@items('APPLY_Previous_Task_Versions')?['sdh_percentcomplete']",
+                                "item/sdh_percentcompleteafter": "@json('{}')?['sdh_percentcomplete']",
+                                "item/sdh_criticalbefore": "@items('APPLY_Previous_Task_Versions')?['sdh_iscritical']",
+                                "item/sdh_criticalafter": "@json('{}')?['sdh_iscritical']",
+                                "item/sdh_wbsbefore": "@items('APPLY_Previous_Task_Versions')?['sdh_wbs']",
+                                "item/sdh_wbsafter": "@json('{}')?['sdh_wbs']",
+                                "item/sdh_startchanged": true,
+                                "item/sdh_finishchanged": true,
+                                "item/sdh_durationchanged": true,
+                                "item/sdh_progresschanged": true,
+                                "item/sdh_criticalitychanged": true,
+                                "item/sdh_wbschanged": true,
+                                "item/sdh_activitycodeschanged": false,
+                                "item/sdh_startdeltadays": "@if(or(empty(items('APPLY_Previous_Task_Versions')?['sdh_startdate']),empty(json('{}')?['sdh_startdate'])),null,div(sub(ticks(json('{}')?['sdh_startdate']),ticks(items('APPLY_Previous_Task_Versions')?['sdh_startdate'])),864000000000))",
+                                "item/sdh_finishdeltadays": "@if(or(empty(items('APPLY_Previous_Task_Versions')?['sdh_finishdate']),empty(json('{}')?['sdh_finishdate'])),null,div(sub(ticks(json('{}')?['sdh_finishdate']),ticks(items('APPLY_Previous_Task_Versions')?['sdh_finishdate'])),864000000000))",
+                                "item/sdh_durationdaysdelta": "@sub(float(coalesce(json('{}')?['sdh_durationdays'],0)),float(coalesce(items('APPLY_Previous_Task_Versions')?['sdh_durationdays'],0)))",
+                                "item/sdh_durationhoursdelta": "@sub(float(coalesce(json('{}')?['sdh_durationhours'],0)),float(coalesce(items('APPLY_Previous_Task_Versions')?['sdh_durationhours'],0)))",
+                                "item/sdh_progressdelta": "@string(sub(float(coalesce(json('{}')?['sdh_percentcomplete'],0)),float(coalesce(items('APPLY_Previous_Task_Versions')?['sdh_percentcomplete'],0))))",
+                                "item/sdh_notes": "Generated by SDH - 03 using deterministic task key comparison. Change type: Removed."
+                              },
+                              "authentication": "@parameters('$authentication')"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "runAfter": {
+                    "FLT_Current_Task": [
+                      "Succeeded"
+                    ]
+                  },
+                  "expression": {
+                    "equals": [
+                      "@length(body('FLT_Current_Task'))",
+                      0
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "47a1e90e-aea5-43df-b83b-42120aa6a173"
+                  },
+                  "type": "If",
+                  "else": {
+                    "actions": {}
+                  }
+                }
+              },
+              "foreach": "@body('LST_Previous_Task_Versions')?['value']",
+              "runAfter": {
+                "APPLY_Current_Task_Versions": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d742ff96-d2b0-4046-aaec-e3ebbb935021"
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 1
+                }
+              }
+            },
+            "CMP_PPC_Percent": {
+              "runAfter": {
+                "APPLY_Previous_Task_Versions": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "41d771cf-c15b-4f0d-9f23-6581ce978cb5"
+              },
+              "type": "Compose",
+              "inputs": "@if(equals(variables('VAR_PPC_Planned'),0),null,div(mul(float(variables('VAR_PPC_Completed')),100),float(variables('VAR_PPC_Planned'))))"
+            },
+            "CMP_PPC_KPI_Key": {
+              "runAfter": {
+                "CMP_PPC_Percent": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "30a9950c-895b-49ac-887d-01edc608f3eb"
+              },
+              "type": "Compose",
+              "inputs": "@concat('KPI_', outputs('CMP_Project_Number'), '_', outputs('CMP_Current_Date_Key'), '_', outputs('CMP_Current_Revision_Key'), '_PPC_PERCENT_PROJECT')"
+            },
+            "FLT_Existing_PPC_KPI_Row": {
+              "runAfter": {
+                "CMP_PPC_KPI_Key": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bc02ac15-2dd9-4c90-82d4-81a9867b6a39"
+              },
+              "type": "Query",
+              "inputs": {
+                "from": "@body('LST_Existing_PPC_KPI')?['value']",
+                "where": "@equals(item()?['sdh_key'], outputs('CMP_PPC_KPI_Key'))"
+              }
+            },
+            "COND_PPC_KPI_Exists": {
+              "actions": {
+                "UPD_PPC_KPI": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "f3ebf642-b493-4d50-9aed-38d7f1c0e328"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "UpdateOnlyRecord",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "sdh_schedulekpiresults",
+                      "recordId": "@first(body('FLT_Existing_PPC_KPI_Row'))?['sdh_schedulekpiresultid']",
+                      "item/sdh_kpiresultname": "@concat('Percent Plan Complete - ', outputs('CMP_Current_Snapshot_Date'))",
+                      "item/sdh_key": "@outputs('CMP_PPC_KPI_Key')",
+                      "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                      "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                      "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                      "item/sdh_snapshotdate": "@outputs('CMP_Current_Snapshot_Date')",
+                      "item/sdh_snapshotrevision": "@outputs('CMP_Current_Snapshot_Revision')",
+                      "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                      "item/sdh_kpiname": "Percent Plan Complete",
+                      "item/sdh_kpicode": "PPC_PERCENT",
+                      "item/sdh_kpicategory": 232400004,
+                      "item/sdh_calculationlevel": 232400002,
+                      "item/sdh_scopekey": "PROJECT",
+                      "item/sdh_kpivaluetypenumber": 232400001,
+                      "item/sdh_kpivalue": "@outputs('CMP_PPC_Percent')",
+                      "item/sdh_kpiunit": "%",
+                      "item/sdh_kpistatus": 232400006,
+                      "item/sdh_numeratorvalue": "@variables('VAR_PPC_Completed')",
+                      "item/sdh_denominatorvalue": "@variables('VAR_PPC_Planned')",
+                      "item/sdh_eligiblerecordcount": "@variables('VAR_PPC_Planned')",
+                      "item/sdh_excludedrecordcount": "@sub(length(body('LST_Previous_Task_Versions')?['value']),variables('VAR_PPC_Planned'))",
+                      "item/sdh_formulaversion": "PPC_PROVISIONAL_v1",
+                      "item/sdh_formulanotes": "Provisional rule: previous non-summary incomplete task finishing within the status-date window; completed by current status date.",
+                      "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                      "item/sdh_calculatedat": "@utcNow()",
+                      "item/sdh_needsconfirmation": true
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "FLT_Existing_PPC_KPI_Row": [
+                  "Succeeded"
+                ]
+              },
+              "expression": {
+                "greater": [
+                  "@length(body('FLT_Existing_PPC_KPI_Row'))",
+                  0
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "bf4b43fa-8a75-4ba3-a677-552eeddc5627"
+              },
+              "type": "If",
+              "else": {
+                "actions": {
+                  "ADD_PPC_KPI": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "0330c4d7-fcd8-4d90-89ac-fd0ee8d2b857"
+                    },
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connectionName": "shared_commondataserviceforapps",
+                        "operationId": "CreateRecord",
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                      },
+                      "parameters": {
+                        "entityName": "sdh_schedulekpiresults",
+                        "item/sdh_kpiresultname": "@concat('Percent Plan Complete - ', outputs('CMP_Current_Snapshot_Date'))",
+                        "item/sdh_key": "@outputs('CMP_PPC_KPI_Key')",
+                        "item/sdh_Project@odata.bind": "@concat('sdh_projects(', outputs('CMP_Project_ID'), ')')",
+                        "item/sdh_projectnumber": "@outputs('CMP_Project_Number')",
+                        "item/sdh_Snapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                        "item/sdh_snapshotdate": "@outputs('CMP_Current_Snapshot_Date')",
+                        "item/sdh_snapshotrevision": "@outputs('CMP_Current_Snapshot_Revision')",
+                        "item/sdh_ImportRun@odata.bind": "@concat('sdh_importruns(', outputs('CMP_Import_Run_ID'), ')')",
+                        "item/sdh_kpiname": "Percent Plan Complete",
+                        "item/sdh_kpicode": "PPC_PERCENT",
+                        "item/sdh_kpicategory": 232400004,
+                        "item/sdh_calculationlevel": 232400002,
+                        "item/sdh_scopekey": "PROJECT",
+                        "item/sdh_kpivaluetypenumber": 232400001,
+                        "item/sdh_kpivalue": "@outputs('CMP_PPC_Percent')",
+                        "item/sdh_kpiunit": "%",
+                        "item/sdh_kpistatus": 232400006,
+                        "item/sdh_numeratorvalue": "@variables('VAR_PPC_Completed')",
+                        "item/sdh_denominatorvalue": "@variables('VAR_PPC_Planned')",
+                        "item/sdh_eligiblerecordcount": "@variables('VAR_PPC_Planned')",
+                        "item/sdh_excludedrecordcount": "@sub(length(body('LST_Previous_Task_Versions')?['value']),variables('VAR_PPC_Planned'))",
+                        "item/sdh_formulaversion": "PPC_PROVISIONAL_v1",
+                        "item/sdh_formulanotes": "Provisional rule: previous non-summary incomplete task finishing within the status-date window; completed by current status date.",
+                        "item/sdh_calculationengineversion": "PowerAutomate_v1",
+                        "item/sdh_calculatedat": "@utcNow()",
+                        "item/sdh_needsconfirmation": true
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "LST_Previous_Snapshot": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greater": [
+              "@length(body('LST_Previous_Snapshot')?['value'])",
+              0
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "986b16e3-2bf0-487f-95e2-fe0905179b64"
+          },
+          "type": "If",
+          "else": {
+            "actions": {
+              "RESP_No_Previous_Snapshot": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "0ea82cd6-fccf-4929-90c0-0979773b1366"
+                },
+                "type": "Response",
+                "kind": "PowerApp",
+                "inputs": {
+                  "statusCode": 200,
+                  "body": {
+                    "status": "Skipped",
+                    "snapshotId": "@outputs('CMP_Current_Snapshot_ID')",
+                    "message": "No previous completed chronological snapshot was found."
+                  },
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string"
+                      },
+                      "snapshotId": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

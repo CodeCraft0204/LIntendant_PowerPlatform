@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sdh_SDHNotificationEmail">
+  <defaultvalue>developpeur@lintendant.com</defaultvalue>
+  <displayname default="SDH Notification Email">
+    <label description="SDH Notification Email" languagecode="1036" />
+  </displayname>
+  <introducedversion>1.0.0.2</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

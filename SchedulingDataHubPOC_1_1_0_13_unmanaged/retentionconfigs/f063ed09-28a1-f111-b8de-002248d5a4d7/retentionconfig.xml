@@ -1,0 +1,12 @@
+<retentionconfig retentionconfigid="f063ed09-28a1-f111-b8de-002248d5a4d7">
+  <criteria>{"QuerySet":["&lt;fetch version=\"1.0\" mapping=\"logical\" savedqueryid=\"64f60a04-e5e8-4aa5-8c52-f45c9f344ed6\" distinct=\"true\"&gt;\n    &lt;entity name=\"msdyn_knowledgeassetconfiguration\"&gt;\n        &lt;attribute name=\"msdyn_knowledgeassetconfigurationid\"/&gt;\n        &lt;attribute name=\"name\"/&gt;\n        &lt;attribute name=\"createdon\"/&gt;\n        &lt;order attribute=\"name\" descending=\"false\"/&gt;\n        &lt;filter type=\"and\"&gt;\n            &lt;condition attribute=\"statecode\" operator=\"eq\" value=\"0\"/&gt;\n        &lt;/filter&gt;\n    &lt;/entity&gt;\n&lt;/fetch&gt;"],"SendEmailNotification":true,"ToRecipients":["87ae2b40-5987-f111-8076-002248d5a4d7"],"CCRecipients":[],"OptionsJson":"{\"CanRecoverDeletedRecords\":true}"}</criteria>
+  <entitylogicalname>msdyn_knowledgeassetconfiguration</entitylogicalname>
+  <iscustomizable>1</iscustomizable>
+  <name>SDH PPC Results</name>
+  <starttime>8/26/2026 8:30:00 AM</starttime>
+  <statecode>0</statecode>
+  <statuscode>20</statuscode>
+  <timezoneruleversionnumber>4</timezoneruleversionnumber>
+  <type>1</type>
+  <uniquename>SDH PPC Results</uniquename>
+</retentionconfig>

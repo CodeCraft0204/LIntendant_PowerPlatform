@@ -1,0 +1,117 @@
+<ImportExportXml version="9.2.26085.142" SolutionPackageVersion="9.2" languagecode="1036" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26085.142" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26085.00142">
+  <SolutionManifest>
+    <UniqueName>SchedulingDataHubPOC</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="Scheduling Data Hub POC" languagecode="1036" />
+    </LocalizedNames>
+    <Descriptions />
+    <Version>1.1.0.13</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>LIntendantPOCPublisher</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="LIntendant POC Publisher" languagecode="1036" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>sdh</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>23240</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="sdh_activitycodes" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_importrun" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_ppcresult" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_project" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_schedulekpiresult" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_schedulesnapshot" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_scheduletask" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_scheduletaskversion" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_sdhchangeevent" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_sdhtaskdelay" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_taskactivitycode" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_taskdependency" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_validationissue" behavior="0" />
+      <RootComponent type="1" schemaName="sdh_weeklyvariance" behavior="0" />
+      <RootComponent type="29" id="{0d6ff320-173e-4241-b104-758599a2be93}" behavior="0" />
+      <RootComponent type="29" id="{15f4c73b-7d1a-4b4d-acb2-c16b4722aa58}" behavior="0" />
+      <RootComponent type="29" id="{5658579b-ea4f-4c68-9d92-f92c3823333b}" behavior="0" />
+      <RootComponent type="29" id="{5d7440d8-5390-f111-8077-002248d5a4d7}" behavior="0" />
+      <RootComponent type="29" id="{b5b489f6-eabd-413a-8fd0-0ba2071f7801}" behavior="0" />
+      <RootComponent type="29" id="{e92ac963-6efb-4d8f-b7cb-c63d209bb60e}" behavior="0" />
+      <RootComponent type="62" schemaName="cr06d_CycleVieProjet" behavior="0" />
+      <RootComponent type="62" schemaName="cr06d_Test" behavior="0" />
+      <RootComponent type="80" schemaName="cr06d_CycleVieProjet" behavior="0" />
+      <RootComponent type="80" schemaName="cr06d_Test" behavior="0" />
+      <RootComponent type="300" schemaName="sdh_schedulingdatahub_63dc2" behavior="0" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required type="61" schemaName="msdyn_/Images/AppModule_Default_Icon.png" displayName="msdyn_/Images/AppModule_Default_Icon.png" solution="AppModuleWebResources (2.5)" />
+        <Dependent type="80" schemaName="cr06d_CycleVieProjet" displayName="Cycle Vie Projet" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="61" schemaName="msdyn_/Images/AppModule_Default_Icon.png" displayName="msdyn_/Images/AppModule_Default_Icon.png" solution="AppModuleWebResources (2.5)" />
+        <Dependent type="80" schemaName="cr06d_Test" displayName="Test" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>

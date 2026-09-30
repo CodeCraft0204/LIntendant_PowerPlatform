@@ -1,0 +1,277 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedsharepointonline_e48f9"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedexcelonlinebusiness_562e5"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedcommondataserviceforapps_f8a58"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "type": "Recurrence",
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Eastern Standard Time",
+            "schedule": {
+              "hours": [
+                2
+              ],
+              "minutes": [
+                0
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "GET_Activity_Code_Master_File": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "f69d2595-009d-415c-ad92-0c91235ecada"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetFileMetadataByPath",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://lintendant1.sharepoint.com/sites/232408-UtileArdoise2.0",
+              "path": "/Documents partages/POC-SchedulingDataHub/Master/ActivityCodeMaster.xlsx"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "LST_Activity_Code_Master_Rows": {
+          "runAfter": {
+            "GET_Activity_Code_Master_File": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "02e3f8be-9825-4346-b289-63f872d8ff42"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+            },
+            "parameters": {
+              "source": "sites/lintendant1.sharepoint.com,d4f00261-5435-4f71-99f1-61d3682baad7,73c560e0-8f87-45c6-a50d-7eb488589c9c",
+              "drive": "b!YQLw1DVUcU-Z8WHTaCuq1-BgxXOHj8ZFpQ1-tIhYnJyaBeWsgRVSSZehKsIuQHzw",
+              "file": "@body('GET_Activity_Code_Master_File')?['Id']",
+              "table": "ActivityCodeMasterTable",
+              "dateTimeFormat": "ISO 8601"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        },
+        "LST_Existing_Activity_Codes": {
+          "runAfter": {
+            "LST_Activity_Code_Master_Rows": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f2ee78d5-49bc-41dd-be48-cf3f73fab822"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "sdh_activitycodeses",
+              "$select": "sdh_activitycodesid,sdh_key,sdh_activitycodekey",
+              "$top": 5000
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "APPLY_Activity_Code_Master": {
+          "actions": {
+            "CMP_Activity_Code_Key": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "4afd662c-f103-49ae-a3c7-8caab0d42338"
+              },
+              "type": "Compose",
+              "inputs": "@if(empty(items('APPLY_Activity_Code_Master')?['Activity Code Key']),replace(items('APPLY_Activity_Code_Master')?['Activity Code'],' ',''),string(items('APPLY_Activity_Code_Master')?['Activity Code Key']))"
+            },
+            "CMP_Activity_SDH_Key": {
+              "runAfter": {
+                "CMP_Activity_Code_Key": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "08a9562d-2a8a-4e16-8047-a44edc0667b1"
+              },
+              "type": "Compose",
+              "inputs": "@if(empty(items('APPLY_Activity_Code_Master')?['SDH Key']),concat('ACT_',outputs('CMP_Activity_Code_Key')),items('APPLY_Activity_Code_Master')?['SDH Key'])"
+            },
+            "FLT_Existing_Activity_Code": {
+              "runAfter": {
+                "CMP_Activity_SDH_Key": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "a188244f-dd07-4a81-bb00-8d4981df3afd"
+              },
+              "type": "Query",
+              "inputs": {
+                "from": "@body('LST_Existing_Activity_Codes')?['value']",
+                "where": "@equals(item()?['sdh_key'], outputs('CMP_Activity_SDH_Key'))"
+              }
+            },
+            "COND_Activity_Code_Exists": {
+              "actions": {
+                "UPD_Activity_Code_Master_Row": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "6aa7e0a5-be84-4ade-8c6a-59a5d07a9b51"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "UpdateOnlyRecord",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "sdh_activitycodeses",
+                      "recordId": "@first(body('FLT_Existing_Activity_Code'))?['sdh_activitycodesid']",
+                      "item/sdh_activitycodename": "@if(empty(items('APPLY_Activity_Code_Master')?['Activity Code Name']),concat(items('APPLY_Activity_Code_Master')?['Activity Code'],' - ',items('APPLY_Activity_Code_Master')?['Description']),items('APPLY_Activity_Code_Master')?['Activity Code Name'])",
+                      "item/sdh_key": "@outputs('CMP_Activity_SDH_Key')",
+                      "item/sdh_activitycode": "@items('APPLY_Activity_Code_Master')?['Activity Code']",
+                      "item/sdh_activitycodekey": "@outputs('CMP_Activity_Code_Key')",
+                      "item/sdh_description": "@items('APPLY_Activity_Code_Master')?['Description']",
+                      "item/sdh_unit": "@items('APPLY_Activity_Code_Master')?['Unit']",
+                      "item/sdh_division": "@items('APPLY_Activity_Code_Master')?['Division']",
+                      "item/sdh_category": "@items('APPLY_Activity_Code_Master')?['Category']",
+                      "item/sdh_isactive": "@not(or(equals(toLower(string(items('APPLY_Activity_Code_Master')?['Is Active'])),'no'),equals(toLower(string(items('APPLY_Activity_Code_Master')?['Is Active'])),'false'),equals(string(items('APPLY_Activity_Code_Master')?['Is Active']),'0')))",
+                      "item/sdh_sourcesystem": "@coalesce(items('APPLY_Activity_Code_Master')?['Source System'],'Activity Code Master Workbook')"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "FLT_Existing_Activity_Code": [
+                  "Succeeded"
+                ]
+              },
+              "expression": {
+                "greater": [
+                  "@length(body('FLT_Existing_Activity_Code'))",
+                  0
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "d60f50e4-9773-4a0c-b0c7-03ba3593bb78"
+              },
+              "type": "If",
+              "else": {
+                "actions": {
+                  "ADD_Activity_Code_Master_Row": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "711a5bd4-40dc-41b0-86a6-9b06683043d6"
+                    },
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connectionName": "shared_commondataserviceforapps",
+                        "operationId": "CreateRecord",
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                      },
+                      "parameters": {
+                        "entityName": "sdh_activitycodeses",
+                        "item/sdh_activitycodename": "@if(empty(items('APPLY_Activity_Code_Master')?['Activity Code Name']),concat(items('APPLY_Activity_Code_Master')?['Activity Code'],' - ',items('APPLY_Activity_Code_Master')?['Description']),items('APPLY_Activity_Code_Master')?['Activity Code Name'])",
+                        "item/sdh_key": "@outputs('CMP_Activity_SDH_Key')",
+                        "item/sdh_activitycode": "@items('APPLY_Activity_Code_Master')?['Activity Code']",
+                        "item/sdh_activitycodekey": "@outputs('CMP_Activity_Code_Key')",
+                        "item/sdh_description": "@items('APPLY_Activity_Code_Master')?['Description']",
+                        "item/sdh_unit": "@items('APPLY_Activity_Code_Master')?['Unit']",
+                        "item/sdh_division": "@items('APPLY_Activity_Code_Master')?['Division']",
+                        "item/sdh_category": "@items('APPLY_Activity_Code_Master')?['Category']",
+                        "item/sdh_isactive": "@not(or(equals(toLower(string(items('APPLY_Activity_Code_Master')?['Is Active'])),'no'),equals(toLower(string(items('APPLY_Activity_Code_Master')?['Is Active'])),'false'),equals(string(items('APPLY_Activity_Code_Master')?['Is Active']),'0')))",
+                        "item/sdh_sourcesystem": "@coalesce(items('APPLY_Activity_Code_Master')?['Source System'],'Activity Code Master Workbook')"
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "foreach": "@body('LST_Activity_Code_Master_Rows')?['value']",
+          "runAfter": {
+            "LST_Existing_Activity_Codes": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "627068e6-2976-43bf-ba79-ed355b8c2dfb"
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 10
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

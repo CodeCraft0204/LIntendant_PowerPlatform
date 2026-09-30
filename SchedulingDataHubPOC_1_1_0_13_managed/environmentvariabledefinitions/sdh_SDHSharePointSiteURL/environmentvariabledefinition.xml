@@ -1,0 +1,11 @@
+<environmentvariabledefinition schemaname="sdh_SDHSharePointSiteURL">
+  <defaultvalue>https://lintendant1.sharepoint.com/sites/PMO</defaultvalue>
+  <displayname default="SDH SharePoint Site URL">
+    <label description="SDH SharePoint Site URL" languagecode="1036" />
+  </displayname>
+  <introducedversion>1.0.0.2</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

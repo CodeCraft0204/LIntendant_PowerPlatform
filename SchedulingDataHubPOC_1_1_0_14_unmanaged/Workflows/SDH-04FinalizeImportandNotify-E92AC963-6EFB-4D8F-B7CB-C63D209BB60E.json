@@ -1,0 +1,594 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedcommondataserviceforapps_f8a58"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedsharepointonline_e48f9"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedoffice365_70c21"
+        },
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "6ce6dff2-b034-43c8-ab28-e9228f5db626"
+          },
+          "type": "Request",
+          "kind": "Button",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "currentSnapshotId": {
+                  "title": "Current Snapshot ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Dataverse snapshot GUID.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "importRunId": {
+                  "title": "Import Run ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Dataverse import run GUID.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "projectId": {
+                  "title": "Project ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Dataverse project GUID.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "projectNumber": {
+                  "title": "Project Number",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Project number.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "rowsImported": {
+                  "title": "Rows Imported",
+                  "type": "integer",
+                  "x-ms-dynamically-added": true,
+                  "description": "Number of imported task rows.",
+                  "x-ms-content-hint": "NUMBER"
+                },
+                "warningCount": {
+                  "title": "Warning Count",
+                  "type": "integer",
+                  "x-ms-dynamically-added": true,
+                  "description": "Final warning count.",
+                  "x-ms-content-hint": "NUMBER"
+                },
+                "notificationEmail": {
+                  "title": "Notification Email",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Recipient for completion notification.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "fileIdentifier": {
+                  "title": "SharePoint File Identifier",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Identifier of workbook to archive. Leave blank when already moved.",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "currentSnapshotId",
+                "importRunId",
+                "projectId",
+                "projectNumber",
+                "rowsImported",
+                "warningCount",
+                "notificationEmail"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "TRY_Finalize_Import": {
+          "actions": {
+            "CMP_Current_Snapshot_ID": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "0443d5e4-0fd5-4a88-8da3-4ec58428a87c"
+              },
+              "type": "Compose",
+              "inputs": "@replace(replace(triggerBody()?['currentSnapshotId'], '{', ''), '}', '')"
+            },
+            "CMP_Import_Run_ID": {
+              "runAfter": {
+                "CMP_Current_Snapshot_ID": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "ba3336ef-9a31-465b-a340-d9957dbaefa1"
+              },
+              "type": "Compose",
+              "inputs": "@replace(replace(triggerBody()?['importRunId'], '{', ''), '}', '')"
+            },
+            "CMP_Project_ID": {
+              "runAfter": {
+                "CMP_Import_Run_ID": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "4bb067ef-98b6-41b7-967f-b16a0f12ae29"
+              },
+              "type": "Compose",
+              "inputs": "@replace(replace(triggerBody()?['projectId'], '{', ''), '}', '')"
+            },
+            "CMP_Project_Number": {
+              "runAfter": {
+                "CMP_Project_ID": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "1702f08f-087b-4611-8263-4f979eb00d47"
+              },
+              "type": "Compose",
+              "inputs": "@string(triggerBody()?['projectNumber'])"
+            },
+            "LST_Current_Snapshot": {
+              "runAfter": {
+                "CMP_Project_Number": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "44079061-e248-404e-a7c5-dc6362bad203"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulesnapshots",
+                  "$select": "sdh_schedulesnapshotid,sdh_snapshotname,sdh_snapshotdate,sdh_snapshotrevision,sdh_fullschedulestartdate,sdh_projectfinishdate,sdh_projectprogresspercent,sdh_constructionstartdate,sdh_constructionfinishdate,sdh_constructionprogresspercent,sdh_substantialcompletiondate",
+                  "$filter": "@concat('sdh_schedulesnapshotid eq ', outputs('CMP_Current_Snapshot_ID'))",
+                  "$top": 1
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "LST_Previous_Latest_Snapshots": {
+              "runAfter": {
+                "LST_Current_Snapshot": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "80072589-74e8-44dd-9029-d66178240db7"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulesnapshots",
+                  "$select": "sdh_schedulesnapshotid",
+                  "$filter": "@concat('_sdh_project_value eq ', outputs('CMP_Project_ID'), ' and sdh_schedulesnapshotid ne ', outputs('CMP_Current_Snapshot_ID'), ' and sdh_islatestsnapshot eq true')",
+                  "$top": 50
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "APPLY_Previous_Latest_Snapshots": {
+              "actions": {
+                "UPD_Previous_Latest": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "3d34be61-680e-4b80-813d-ef43ce407d9a"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "UpdateOnlyRecord",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "sdh_schedulesnapshots",
+                      "recordId": "@items('APPLY_Previous_Latest_Snapshots')?['sdh_schedulesnapshotid']",
+                      "item/sdh_islatestsnapshot": false
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "foreach": "@body('LST_Previous_Latest_Snapshots')?['value']",
+              "runAfter": {
+                "LST_Previous_Latest_Snapshots": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c6c5896d-f829-4019-ac94-ccf2626a9c65"
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 5
+                }
+              }
+            },
+            "LST_Previous_Same_Date_Revisions": {
+              "runAfter": {
+                "APPLY_Previous_Latest_Snapshots": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "589f67cf-eece-4fde-9d50-00bbb2f159c7"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulesnapshots",
+                  "$select": "sdh_schedulesnapshotid",
+                  "$filter": "@concat('_sdh_project_value eq ', outputs('CMP_Project_ID'), ' and sdh_schedulesnapshotid ne ', outputs('CMP_Current_Snapshot_ID'), ' and sdh_snapshotdate eq ', formatDateTime(first(body('LST_Current_Snapshot')?['value'])?['sdh_snapshotdate'],'yyyy-MM-dd'), ' and sdh_islatestrevision eq true')",
+                  "$top": 50
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "APPLY_Previous_Same_Date_Revisions": {
+              "actions": {
+                "UPD_Previous_Revision": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "ffa556f1-02b7-4aaa-8260-d092ccbdc48b"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "UpdateOnlyRecord",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "sdh_schedulesnapshots",
+                      "recordId": "@items('APPLY_Previous_Same_Date_Revisions')?['sdh_schedulesnapshotid']",
+                      "item/sdh_islatestrevision": false,
+                      "item/sdh_issuperseded": true
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "foreach": "@body('LST_Previous_Same_Date_Revisions')?['value']",
+              "runAfter": {
+                "LST_Previous_Same_Date_Revisions": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "b60c55ac-e162-4f5b-9bb0-0c4e82968501"
+              },
+              "type": "Foreach",
+              "runtimeConfiguration": {
+                "concurrency": {
+                  "repetitions": 5
+                }
+              }
+            },
+            "UPD_Current_Snapshot_Completed": {
+              "runAfter": {
+                "APPLY_Previous_Same_Date_Revisions": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "1e827cdc-cb59-42d2-933f-5629778fb6c6"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_schedulesnapshots",
+                  "recordId": "@outputs('CMP_Current_Snapshot_ID')",
+                  "item/sdh_importstatus": 232400002,
+                  "item/sdh_islatestrevision": true,
+                  "item/sdh_islatestsnapshot": true,
+                  "item/sdh_issuperseded": false
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "UPD_Project_Latest_Cache": {
+              "runAfter": {
+                "UPD_Current_Snapshot_Completed": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "01089d0d-fdaf-4fe5-b3a1-4c5c45910e2c"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_projects",
+                  "recordId": "@outputs('CMP_Project_ID')",
+                  "item/sdh_LatestScheduleSnapshot@odata.bind": "@concat('sdh_schedulesnapshots(', outputs('CMP_Current_Snapshot_ID'), ')')",
+                  "item/sdh_latestsnapshotdate": "@first(body('LST_Current_Snapshot')?['value'])?['sdh_snapshotdate']",
+                  "item/sdh_latestfullschedulestartdate": "@first(body('LST_Current_Snapshot')?['value'])?['sdh_fullschedulestartdate']",
+                  "item/sdh_latestfullschedulefinishdate": "@first(body('LST_Current_Snapshot')?['value'])?['sdh_projectfinishdate']",
+                  "item/sdh_constructionstartdate": "@first(body('LST_Current_Snapshot')?['value'])?['sdh_constructionstartdate']",
+                  "item/sdh_constructionfinishdate": "@first(body('LST_Current_Snapshot')?['value'])?['sdh_constructionfinishdate']",
+                  "item/sdh_latestconstructionprogresspercent": "@first(body('LST_Current_Snapshot')?['value'])?['sdh_constructionprogresspercent']",
+                  "item/sdh_substantialcompletiondate": "@first(body('LST_Current_Snapshot')?['value'])?['sdh_substantialcompletiondate']"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "UPD_Import_Run_Completed": {
+              "runAfter": {
+                "UPD_Project_Latest_Cache": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "9a30542f-9bb8-40d5-b79e-d369854b7238"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_importruns",
+                  "recordId": "@outputs('CMP_Import_Run_ID')",
+                  "item/sdh_importstatus": "@if(greater(int(triggerBody()?['warningCount']),0),232400004,232400003)",
+                  "item/sdh_completedat": "@utcNow()",
+                  "item/sdh_rowsimported": "@int(triggerBody()?['rowsImported'])",
+                  "item/sdh_warningcount": "@int(triggerBody()?['warningCount'])",
+                  "item/sdh_errorcount": 0
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "SND_Completion_Email": {
+              "runAfter": {
+                "UPD_Import_Run_Completed": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "cf5e97ff-c9a8-48f9-9d2c-dbb1f4803d8c"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@triggerBody()?['notificationEmail']",
+                  "emailMessage/Subject": "@concat('SDH import completed - ', outputs('CMP_Project_Number'))",
+                  "emailMessage/Body": "@concat('<p>The schedule import completed for project <strong>', outputs('CMP_Project_Number'), '</strong>.</p><p>Snapshot: ', first(body('LST_Current_Snapshot')?['value'])?['sdh_snapshotname'], '<br/>Rows imported: ', triggerBody()?['rowsImported'], '<br/>Warnings: ', triggerBody()?['warningCount'], '</p>')",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "RESP_Finalize_Success": {
+              "runAfter": {
+                "SND_Completion_Email": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "de3c6c48-7731-46a3-83ef-4da89342967d"
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "status": "Completed",
+                  "snapshotId": "@outputs('CMP_Current_Snapshot_ID')",
+                  "message": "Import finalized and notification sent."
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "snapshotId": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "35021c1a-5e13-4965-a67c-d98ef4b50dc0"
+          },
+          "type": "Scope"
+        },
+        "CATCH_Finalize_Import": {
+          "actions": {
+            "CMP_Finalize_Error": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "80e8a7ec-a309-45f5-bade-2ecf7372424d"
+              },
+              "type": "Compose",
+              "inputs": "@substring(concat('Finalize/notify warning: ', string(result('TRY_Finalize_Import'))),0,min(1900,length(concat('Finalize/notify warning: ', string(result('TRY_Finalize_Import'))))))"
+            },
+            "UPD_Import_Run_Finalize_Warning": {
+              "runAfter": {
+                "CMP_Finalize_Error": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "8f430a7c-e579-4b4e-a657-736b80f341d7"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                },
+                "parameters": {
+                  "entityName": "sdh_importruns",
+                  "recordId": "@replace(replace(triggerBody()?['importRunId'], '{', ''), '}', '')",
+                  "item/sdh_importstatus": 232400004,
+                  "item/sdh_completedat": "@utcNow()",
+                  "item/sdh_warningcount": "@add(int(triggerBody()?['warningCount']),1)",
+                  "item/sdh_errormessage": "@outputs('CMP_Finalize_Error')"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "SND_Finalize_Warning_Email": {
+              "runAfter": {
+                "UPD_Import_Run_Finalize_Warning": [
+                  "Succeeded",
+                  "Failed"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "cebfb131-e298-4c64-9c3c-879e62e7fda7"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "@triggerBody()?['notificationEmail']",
+                  "emailMessage/Subject": "@concat('SDH import completed with post-processing warning - ', triggerBody()?['projectNumber'])",
+                  "emailMessage/Body": "@concat('<p>The data import completed, but finalization, archival, or notification had a warning.</p><pre>', outputs('CMP_Finalize_Error'), '</pre>')",
+                  "emailMessage/Importance": "Normal"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "RESP_Finalize_Warning": {
+              "runAfter": {
+                "SND_Finalize_Warning_Email": [
+                  "Succeeded",
+                  "Failed"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "5b4c1a8c-6aae-4341-a574-8f2cdc5cf123"
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "status": "CompletedWithWarnings",
+                  "snapshotId": "@triggerBody()?['currentSnapshotId']",
+                  "message": "@outputs('CMP_Finalize_Error')"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "snapshotId": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "TRY_Finalize_Import": [
+              "Failed",
+              "TimedOut"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "2f3d2adc-8d25-4158-8836-728c63d02a09"
+          },
+          "type": "Scope"
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

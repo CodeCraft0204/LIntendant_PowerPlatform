@@ -1,0 +1,299 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedsharepointonline_e48f9"
+        },
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedexcelonlinebusiness_562e5"
+        },
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "sdh_sharedcommondataserviceforapps_f8a58"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "type": "Recurrence",
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Eastern Standard Time",
+            "schedule": {
+              "hours": [
+                1
+              ],
+              "minutes": [
+                30
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "GET_Project_Master_File": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "66967a58-2f13-451d-b3fd-9abc1d25ece0"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_sharepointonline",
+              "operationId": "GetFileMetadataByPath",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+            },
+            "parameters": {
+              "dataset": "https://lintendant1.sharepoint.com/sites/232408-UtileArdoise2.0",
+              "path": "/Documents partages/POC-SchedulingDataHub/Master/ProjectMaster.xlsx"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "LST_Project_Master_Rows": {
+          "runAfter": {
+            "GET_Project_Master_File": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "f3451530-c4c1-4790-bf85-5ed236e7347b"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+            },
+            "parameters": {
+              "source": "sites/lintendant1.sharepoint.com,d4f00261-5435-4f71-99f1-61d3682baad7,73c560e0-8f87-45c6-a50d-7eb488589c9c",
+              "drive": "b!YQLw1DVUcU-Z8WHTaCuq1-BgxXOHj8ZFpQ1-tIhYnJyaBeWsgRVSSZehKsIuQHzw",
+              "file": "@body('GET_Project_Master_File')?['Id']",
+              "table": "ProjectMasterTable",
+              "dateTimeFormat": "ISO 8601"
+            },
+            "authentication": "@parameters('$authentication')"
+          },
+          "runtimeConfiguration": {
+            "paginationPolicy": {
+              "minimumItemCount": 5000
+            }
+          }
+        },
+        "LST_Existing_Projects": {
+          "runAfter": {
+            "LST_Project_Master_Rows": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "75cff870-88f5-4014-b558-d074b621a186"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "sdh_projects",
+              "$select": "sdh_projectid,sdh_projectnumber,sdh_key",
+              "$top": 5000
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "APPLY_Project_Master": {
+          "actions": {
+            "CMP_Source_Project_Number": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "88f12a22-baa3-4c7c-9af3-eded30f4c87b"
+              },
+              "type": "Compose",
+              "inputs": "@trim(string(items('APPLY_Project_Master')?['Project Number']))"
+            },
+            "FLT_Existing_Project": {
+              "runAfter": {
+                "CMP_Source_Project_Number": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "fefe339b-d2e2-4d62-a78d-d1142b5dfda1"
+              },
+              "type": "Query",
+              "inputs": {
+                "from": "@body('LST_Existing_Projects')?['value']",
+                "where": "@equals(string(item()?['sdh_projectnumber']), outputs('CMP_Source_Project_Number'))"
+              }
+            },
+            "COND_Project_Exists": {
+              "actions": {
+                "UPD_Project_Master_Row": {
+                  "runAfter": {},
+                  "metadata": {
+                    "operationMetadataId": "a8b2ca00-a24e-4fbd-ae22-156cba3d335c"
+                  },
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connectionName": "shared_commondataserviceforapps",
+                      "operationId": "UpdateOnlyRecord",
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                    },
+                    "parameters": {
+                      "entityName": "sdh_projects",
+                      "recordId": "@first(body('FLT_Existing_Project'))?['sdh_projectid']",
+                      "item/sdh_projectname": "@trim(string(items('APPLY_Project_Master')?['Project Name']))",
+                      "item/sdh_key": "@if(empty(items('APPLY_Project_Master')?['SDH Key']),concat('PRJ_',outputs('CMP_Source_Project_Number')),items('APPLY_Project_Master')?['SDH Key'])",
+                      "item/sdh_projectnumber": "@outputs('CMP_Source_Project_Number')",
+                      "item/sdh_client": "@items('APPLY_Project_Master')?['Client']",
+                      "item/sdh_address": "@items('APPLY_Project_Master')?['Address']",
+                      "item/sdh_projectphase": "@items('APPLY_Project_Master')?['Project Phase']",
+                      "item/sdh_projecttype": "@items('APPLY_Project_Master')?['Project Type']",
+                      "item/sdh_contracttype": "@items('APPLY_Project_Master')?['Contract Type']",
+                      "item/sdh_projectmanager": "@items('APPLY_Project_Master')?['Project Manager']",
+                      "item/sdh_assistantprojectmanager": "@items('APPLY_Project_Master')?['Assistant Project Manager']",
+                      "item/sdh_superintendent": "@items('APPLY_Project_Master')?['Superintendent']",
+                      "item/sdh_startdate": "@if(empty(items('APPLY_Project_Master')?['Project Start Date']),null,if(or(isFloat(string(items('APPLY_Project_Master')?['Project Start Date'])),isInt(string(items('APPLY_Project_Master')?['Project Start Date']))),formatDateTime(addDays('1899-12-30T00:00:00Z',int(first(split(string(items('APPLY_Project_Master')?['Project Start Date']),'.')))),'yyyy-MM-dd'),formatDateTime(string(items('APPLY_Project_Master')?['Project Start Date']),'yyyy-MM-dd')))",
+                      "item/sdh_enddate": "@if(empty(items('APPLY_Project_Master')?['Project End Date']),null,if(or(isFloat(string(items('APPLY_Project_Master')?['Project End Date'])),isInt(string(items('APPLY_Project_Master')?['Project End Date']))),formatDateTime(addDays('1899-12-30T00:00:00Z',int(first(split(string(items('APPLY_Project_Master')?['Project End Date']),'.')))),'yyyy-MM-dd'),formatDateTime(string(items('APPLY_Project_Master')?['Project End Date']),'yyyy-MM-dd')))",
+                      "item/sdh_budget": "@if(empty(items('APPLY_Project_Master')?['Budget']),null,float(items('APPLY_Project_Master')?['Budget']))",
+                      "item/sdh_marginamount": "@if(empty(items('APPLY_Project_Master')?['Margin Amount']),null,float(items('APPLY_Project_Master')?['Margin Amount']))",
+                      "item/sdh_marginpercent": "@if(empty(items('APPLY_Project_Master')?['Margin Percent']),null,float(items('APPLY_Project_Master')?['Margin Percent']))",
+                      "item/sdh_complexity": "@if(empty(items('APPLY_Project_Master')?['Complexity']),null,int(items('APPLY_Project_Master')?['Complexity']))",
+                      "item/sdh_duration": "@if(empty(items('APPLY_Project_Master')?['Project Duration']),null,float(items('APPLY_Project_Master')?['Project Duration']))",
+                      "item/sdh_sharepointsiteurl": "@items('APPLY_Project_Master')?['SharePoint Site URL']",
+                      "item/sdh_sharepointlistitemid": "@if(empty(items('APPLY_Project_Master')?['SharePoint List Item ID']),null,int(items('APPLY_Project_Master')?['SharePoint List Item ID']))",
+                      "item/sdh_teamsid": "@items('APPLY_Project_Master')?['Teams ID']",
+                      "item/sdh_plannerid": "@items('APPLY_Project_Master')?['Planner ID']",
+                      "item/sdh_sourcesystem": "@coalesce(items('APPLY_Project_Master')?['Source System'],'Project Master Workbook')",
+                      "item/sdh_sourcemodifiedat": "@if(empty(items('APPLY_Project_Master')?['Source Modified At']),null,if(or(isFloat(string(items('APPLY_Project_Master')?['Source Modified At'])),isInt(string(items('APPLY_Project_Master')?['Source Modified At']))),addSeconds(addDays('1899-12-30T00:00:00Z',int(first(split(string(items('APPLY_Project_Master')?['Source Modified At']),'.')))),if(contains(string(items('APPLY_Project_Master')?['Source Modified At']),'.'),int(formatNumber(mul(float(concat('0.',last(split(string(items('APPLY_Project_Master')?['Source Modified At']),'.')))),86400),'0','en-US')),0),'yyyy-MM-ddTHH:mm:ssZ'),formatDateTime(string(items('APPLY_Project_Master')?['Source Modified At']),'yyyy-MM-ddTHH:mm:ssZ')))",
+                      "item/sdh_lastsyncedat": "@utcNow()",
+                      "item/sdh_syncstatus": 232400001,
+                      "item/sdh_isactive": "@not(or(equals(toLower(string(items('APPLY_Project_Master')?['Is Active'])),'no'),equals(toLower(string(items('APPLY_Project_Master')?['Is Active'])),'false'),equals(string(items('APPLY_Project_Master')?['Is Active']),'0')))"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                  }
+                }
+              },
+              "runAfter": {
+                "FLT_Existing_Project": [
+                  "Succeeded"
+                ]
+              },
+              "expression": {
+                "greater": [
+                  "@length(body('FLT_Existing_Project'))",
+                  0
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c6f21323-8612-4a2d-8a95-44440e43fb68"
+              },
+              "type": "If",
+              "else": {
+                "actions": {
+                  "ADD_Project_Master_Row": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "f06bd6c3-de68-4502-8cb8-8b20c99cef19"
+                    },
+                    "type": "OpenApiConnection",
+                    "inputs": {
+                      "host": {
+                        "connectionName": "shared_commondataserviceforapps",
+                        "operationId": "CreateRecord",
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                      },
+                      "parameters": {
+                        "entityName": "sdh_projects",
+                        "item/sdh_projectname": "@trim(string(items('APPLY_Project_Master')?['Project Name']))",
+                        "item/sdh_key": "@if(empty(items('APPLY_Project_Master')?['SDH Key']),concat('PRJ_',outputs('CMP_Source_Project_Number')),items('APPLY_Project_Master')?['SDH Key'])",
+                        "item/sdh_projectnumber": "@outputs('CMP_Source_Project_Number')",
+                        "item/sdh_client": "@items('APPLY_Project_Master')?['Client']",
+                        "item/sdh_address": "@items('APPLY_Project_Master')?['Address']",
+                        "item/sdh_projectphase": "@items('APPLY_Project_Master')?['Project Phase']",
+                        "item/sdh_projecttype": "@items('APPLY_Project_Master')?['Project Type']",
+                        "item/sdh_contracttype": "@items('APPLY_Project_Master')?['Contract Type']",
+                        "item/sdh_projectmanager": "@items('APPLY_Project_Master')?['Project Manager']",
+                        "item/sdh_assistantprojectmanager": "@items('APPLY_Project_Master')?['Assistant Project Manager']",
+                        "item/sdh_superintendent": "@items('APPLY_Project_Master')?['Superintendent']",
+                        "item/sdh_startdate": "@if(empty(items('APPLY_Project_Master')?['Project Start Date']),null,if(or(isFloat(string(items('APPLY_Project_Master')?['Project Start Date'])),isInt(string(items('APPLY_Project_Master')?['Project Start Date']))),formatDateTime(addDays('1899-12-30T00:00:00Z',int(first(split(string(items('APPLY_Project_Master')?['Project Start Date']),'.')))),'yyyy-MM-dd'),formatDateTime(string(items('APPLY_Project_Master')?['Project Start Date']),'yyyy-MM-dd')))",
+                        "item/sdh_enddate": "@if(empty(items('APPLY_Project_Master')?['Project End Date']),null,if(or(isFloat(string(items('APPLY_Project_Master')?['Project End Date'])),isInt(string(items('APPLY_Project_Master')?['Project End Date']))),formatDateTime(addDays('1899-12-30T00:00:00Z',int(first(split(string(items('APPLY_Project_Master')?['Project End Date']),'.')))),'yyyy-MM-dd'),formatDateTime(string(items('APPLY_Project_Master')?['Project End Date']),'yyyy-MM-dd')))",
+                        "item/sdh_budget": "@if(empty(items('APPLY_Project_Master')?['Budget']),null,float(items('APPLY_Project_Master')?['Budget']))",
+                        "item/sdh_marginamount": "@if(empty(items('APPLY_Project_Master')?['Margin Amount']),null,float(items('APPLY_Project_Master')?['Margin Amount']))",
+                        "item/sdh_marginpercent": "@if(empty(items('APPLY_Project_Master')?['Margin Percent']),null,float(items('APPLY_Project_Master')?['Margin Percent']))",
+                        "item/sdh_complexity": "@if(empty(items('APPLY_Project_Master')?['Complexity']),null,int(items('APPLY_Project_Master')?['Complexity']))",
+                        "item/sdh_duration": "@if(empty(items('APPLY_Project_Master')?['Project Duration']),null,float(items('APPLY_Project_Master')?['Project Duration']))",
+                        "item/sdh_sharepointsiteurl": "@items('APPLY_Project_Master')?['SharePoint Site URL']",
+                        "item/sdh_sharepointlistitemid": "@if(empty(items('APPLY_Project_Master')?['SharePoint List Item ID']),null,int(items('APPLY_Project_Master')?['SharePoint List Item ID']))",
+                        "item/sdh_teamsid": "@items('APPLY_Project_Master')?['Teams ID']",
+                        "item/sdh_plannerid": "@items('APPLY_Project_Master')?['Planner ID']",
+                        "item/sdh_sourcesystem": "@coalesce(items('APPLY_Project_Master')?['Source System'],'Project Master Workbook')",
+                        "item/sdh_sourcemodifiedat": "@if(empty(items('APPLY_Project_Master')?['Source Modified At']),null,if(or(isFloat(string(items('APPLY_Project_Master')?['Source Modified At'])),isInt(string(items('APPLY_Project_Master')?['Source Modified At']))),addSeconds(addDays('1899-12-30T00:00:00Z',int(first(split(string(items('APPLY_Project_Master')?['Source Modified At']),'.')))),if(contains(string(items('APPLY_Project_Master')?['Source Modified At']),'.'),int(formatNumber(mul(float(concat('0.',last(split(string(items('APPLY_Project_Master')?['Source Modified At']),'.')))),86400),'0','en-US')),0),'yyyy-MM-ddTHH:mm:ssZ'),formatDateTime(string(items('APPLY_Project_Master')?['Source Modified At']),'yyyy-MM-ddTHH:mm:ssZ')))",
+                        "item/sdh_lastsyncedat": "@utcNow()",
+                        "item/sdh_syncstatus": 232400001,
+                        "item/sdh_isactive": "@not(or(equals(toLower(string(items('APPLY_Project_Master')?['Is Active'])),'no'),equals(toLower(string(items('APPLY_Project_Master')?['Is Active'])),'false'),equals(string(items('APPLY_Project_Master')?['Is Active']),'0')))"
+                      },
+                      "authentication": "@parameters('$authentication')"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "foreach": "@body('LST_Project_Master_Rows')?['value']",
+          "runAfter": {
+            "LST_Existing_Projects": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "0719f7f7-25c6-4668-a9be-9cd57e9154ff"
+          },
+          "type": "Foreach",
+          "runtimeConfiguration": {
+            "concurrency": {
+              "repetitions": 10
+            }
+          }
+        }
+      }
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}
