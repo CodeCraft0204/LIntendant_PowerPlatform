@@ -1,0 +1,81 @@
+# Scheduling Data Hub POC — GitHub-friendly ignores
+
+# ---------------------------------------------------------------------------
+# OS
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ---------------------------------------------------------------------------
+# Editors / IDEs
+# ---------------------------------------------------------------------------
+.vs/
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ---------------------------------------------------------------------------
+# Secrets & local environment
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+credentials.json
+**/local.settings.json
+**/appsettings.*.local.json
+
+# ---------------------------------------------------------------------------
+# Python (PBIX / solution build scripts)
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------------------------------------------------------------------------
+# Power BI — keep .pbix source; drop backups and unpack scratch
+# ---------------------------------------------------------------------------
+*.pbix.bak
+*.pbit.tmp
+_pbix_edit/dash/
+_pbix_edit/**/DataModel
+_pbix_edit/**/Connections
+_pbix_edit/**/*.sqlite*
+_pbix_edit/**/*.abf
+
+# ---------------------------------------------------------------------------
+# Local tools (download / unpack separately; do not push vendor binaries)
+# ---------------------------------------------------------------------------
+_tools/
+
+# ---------------------------------------------------------------------------
+# Power Platform solution packages
+# Keep both unpacked folders AND import .zip files — the zips are the
+# real Power Automate / Dataverse solution deliverables used for import.
+# ---------------------------------------------------------------------------
+# (do not ignore SchedulingDataHubPOC_*.zip)
+
+# ---------------------------------------------------------------------------
+# Logs / temp / misc
+# ---------------------------------------------------------------------------
+*.log
+*.tmp
+*.temp
+*.cache
+~$*
