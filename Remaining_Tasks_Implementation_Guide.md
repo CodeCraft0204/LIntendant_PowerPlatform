@@ -426,7 +426,10 @@ SUMMARIZECOLUMNS(
 )
 ```
 
-If `With actual start` = 0 while `With % complete > 0` is high, open the 10/16 export. Check that the actual start/finish columns are present and filled, then re-import it. No DAX can recover dates that were never imported.
+If `With actual start` = 0 while `With % complete > 0` is high, the export arrived without actual dates (SDH-01 maps `actualStart` → `sdh_actualstart`, so a blank column means the file had none).
+
+- **Chart:** the Actual measure in 2.1 rebuilds the missing dates from the MS Project rule: once a task has progress, its Start is its Actual Start, and at 100% its Finish is its Actual Finish. Such a snapshot therefore still draws a correct Actual line, and it ends at MS Project's construction % complete.
+- **Data:** still open that week's export, check that the actual start/finish columns are present and filled, and re-import it. Other consumers of `sdh_actualstart` (for example SDH-03) do not use the fallback.
 
 **Output of task 1:** calendar complete through 2032, positions match MPP durations, and actual positions are no longer 0.
 
@@ -440,7 +443,7 @@ What changes:
 
 - **Task population.** It now uses `ALL` + explicit project, snapshot and revision, the same as Planned and Forecast, instead of relying on page filters.
 - **Line no longer stops at the forecast finish.** It no longer goes blank after the forecast construction finish, so a nearly complete project still shows Actual up to the status date.
-- **Finished tasks with no recorded actual start** fall back to their current start.
+- **Missing actual dates** are rebuilt from the current dates. A task with % complete > 0 (or an actual finish) but no actual start uses its current start. A task at 100% with no actual finish uses its current finish. A snapshot imported without actuals (see 1.8) therefore no longer shows a flat 0% line.
 - **Unfinished-task rule as a switch.** It is controlled by one variable, `UseStatusAnchor`. **Simon needs to choose:**
   - `TRUE()` (recommended): an unfinished task reaches its MS Project **% complete exactly at the status date**. The Actual curve then ends at the same value as MS Project's construction % complete, which task 3 needs.
   - `FALSE()`: an unfinished task progresses linearly from its actual start to its forecast finish. This is the current behavior.
@@ -521,18 +524,8 @@ VAR WeightedProgress =
             'sdh_scheduletaskversion'[Current Finish Work Minute Position]
                 - 'sdh_scheduletaskversion'[Current Start Work Minute Position]
 
-        VAR ActualFinish =
-            'sdh_scheduletaskversion'[Actual Finish Work Minute Position]
-
-        -- A finished task without a recorded Actual Start starts at its current start
-        VAR ActualStart =
-            COALESCE(
-                'sdh_scheduletaskversion'[Actual Start Work Minute Position],
-                IF(
-                    NOT ISBLANK(ActualFinish),
-                    'sdh_scheduletaskversion'[Current Start Work Minute Position]
-                )
-            )
+        VAR CurrentStart =
+            'sdh_scheduletaskversion'[Current Start Work Minute Position]
 
         VAR CurrentFinish =
             'sdh_scheduletaskversion'[Current Finish Work Minute Position]
@@ -541,6 +534,20 @@ VAR WeightedProgress =
             DIVIDE(
                 COALESCE('sdh_scheduletaskversion'[sdh_percentcomplete], 0),
                 100
+            )
+
+        -- MS Project sets Start = Actual Start once a task has progress, and Finish = Actual Finish at 100%,
+        -- so the current dates stand in when an export arrives without actual dates
+        VAR ActualFinish =
+            COALESCE(
+                'sdh_scheduletaskversion'[Actual Finish Work Minute Position],
+                IF(PercentComplete >= 1, CurrentFinish)
+            )
+
+        VAR ActualStart =
+            COALESCE(
+                'sdh_scheduletaskversion'[Actual Start Work Minute Position],
+                IF(PercentComplete > 0 || NOT ISBLANK(ActualFinish), CurrentStart)
             )
 
         VAR IsFinished =
