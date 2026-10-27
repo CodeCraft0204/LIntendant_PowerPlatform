@@ -426,10 +426,10 @@ SUMMARIZECOLUMNS(
 )
 ```
 
-If `With actual start` = 0 while `With % complete > 0` is high, the export arrived without actual dates (SDH-01 maps `actualStart` → `sdh_actualstart`, so a blank column means the file had none).
+If `With actual start` = 0 while `With % complete > 0` is high, the actual dates were lost on import. For 232408 / 10/16, the export has them, but in a weekday format (`Jeu 23-11-23`) that the parser did not accept. The fix and re-import steps are in [Date_Format_Fix_Guide.md](Date_Format_Fix_Guide.md).
 
-- **Chart:** the Actual measure in 2.1 rebuilds the missing dates from the MS Project rule: once a task has progress, its Start is its Actual Start, and at 100% its Finish is its Actual Finish. Such a snapshot therefore still draws a correct Actual line, and it ends at MS Project's construction % complete.
-- **Data:** still open that week's export, check that the actual start/finish columns are present and filled, and re-import it. Other consumers of `sdh_actualstart` (for example SDH-03) do not use the fallback.
+- **Chart:** the Actual measure in 2.1 rebuilds missing dates from the MS Project rule: once a task has progress, its Start is its Actual Start, and at 100% its Finish is its Actual Finish. For 232408 / 10/16, this matches the real actual dates exactly.
+- **Data:** re-import the snapshot after the parser fix. Other consumers of `sdh_actualstart` (for example SDH-03) do not use the fallback.
 
 **Output of task 1:** calendar complete through 2032, positions match MPP durations, and actual positions are no longer 0.
 
