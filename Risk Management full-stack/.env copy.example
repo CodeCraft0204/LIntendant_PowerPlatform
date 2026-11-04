@@ -1,0 +1,18 @@
+# Copy to .env.local and fill in. Without the two VITE_SUPABASE_* values the
+# app runs in demo mode (local data, no sign-in server).
+
+# Supabase › Project Settings › API
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<publishable / anon key>
+
+# 1 = show "Continuer avec Microsoft" (configure the Azure provider in
+# Supabase › Authentication › Sign In / Providers first)
+VITE_AUTH_MICROSOFT=0
+
+# 1 = force demo mode even when Supabase is configured
+VITE_DEMO=0
+
+# Legacy import only (scripts/import-legacy.mjs). Never prefix with VITE_:
+# this key bypasses row level security and must not reach the browser.
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<service role key>

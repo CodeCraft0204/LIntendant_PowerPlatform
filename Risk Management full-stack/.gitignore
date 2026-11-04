@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env.local
+.env.*.local
+
+# Client data: generated from the SharePoint backup, never committed
+src/demo/seed.generated.json
+attachments-map.csv
+records-with-attachments.csv

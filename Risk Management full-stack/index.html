@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr-CA">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#003865" />
+    <meta name="robots" content="noindex" />
+    <title>Risques et enjeux · L'Intendant</title>
+    <meta name="description" content="Registre des risques et enjeux des projets de L'Intendant." />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script>
+      // Apply the saved theme before first paint (see src/lib/useTheme.js).
+      try {
+        var saved = localStorage.getItem("lintendant-theme")
+        if (saved === "dark" || saved === "light") document.documentElement.dataset.theme = saved
+      } catch (error) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

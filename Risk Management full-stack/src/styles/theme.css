@@ -1,0 +1,106 @@
+/* Design tokens. Same structure as the We2 portal (tokens per theme, scoped
+   with data-theme, exposed to Tailwind through @theme inline), recoloured with
+   the L'Intendant brand: navy #003865 and slate #7C878E. Light is the
+   default, as in the L'Intendant ERP; dark is one click away. */
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --f-sans: "Montserrat Variable", Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ease-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --brand-navy: #003865;
+  --brand-slate: #7c878e;
+
+  /* Risk levels: fixed in both themes, so a level reads the same everywhere. */
+  --lvl-critique: #c93636;
+  --lvl-eleve: #ea7317;
+  --lvl-moyen: #f2c744;
+  --lvl-faible: #15803d;
+  --lvl-tres_faible: #86c79a;
+}
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f2f4f6;
+  --band: #eaedf0;
+  --surface: #ffffff;
+  --surface-2: #f6f7f9;
+  --ink: #14263a;
+  --ink-2: #33414f;
+  --muted: #67737e;
+  --line: #e1e5e9;
+  --line-strong: #cbd2d8;
+  --accent: #003865;
+  --accent-hover: #00294a;
+  --accent-ink: #ffffff;
+  --accent-soft: #e5ecf3;
+  --link: #0b4f8a;
+  --success: #2f7a4f;
+  --warn: #9a5b00;
+  --danger: #b42318;
+  --focus: #2a6bb0;
+  --shadow: 0 1px 2px rgba(16, 36, 56, 0.05);
+  --shadow-pop: 0 12px 32px -12px rgba(16, 36, 56, 0.28);
+
+  --sidebar-bg: #003865;
+  --sidebar-ink: #eef3f7;
+  --sidebar-muted: #a7b7c5;
+  --sidebar-hover: rgba(255, 255, 255, 0.07);
+  --sidebar-active: rgba(255, 255, 255, 0.13);
+  --sidebar-line: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1520;
+  --band: #0f1c29;
+  --surface: #122131;
+  --surface-2: #17293b;
+  --ink: #eef3f7;
+  --ink-2: #c8d2db;
+  --muted: #93a3b2;
+  --line: #22364a;
+  --line-strong: #2e475f;
+  --accent: #3d82c4;
+  --accent-hover: #4b92d6;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(61, 130, 196, 0.16);
+  --link: #8cbcea;
+  --success: #6ccf98;
+  --warn: #f0b75a;
+  --danger: #ff9b8f;
+  --focus: #8cbcea;
+  --shadow: none;
+  --shadow-pop: 0 16px 40px -12px rgba(0, 0, 0, 0.6);
+
+  --sidebar-bg: #061a2c;
+  --sidebar-ink: #e6edf3;
+  --sidebar-muted: #8ea2b4;
+  --sidebar-hover: rgba(255, 255, 255, 0.05);
+  --sidebar-active: rgba(255, 255, 255, 0.1);
+  --sidebar-line: rgba(255, 255, 255, 0.08);
+}
+
+@theme inline {
+  --font-sans: var(--f-sans);
+
+  --color-bg: var(--bg);
+  --color-band: var(--band);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-link: var(--link);
+  --color-success: var(--success);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-navy: #003865;
+  --color-slate: #7c878e;
+}
