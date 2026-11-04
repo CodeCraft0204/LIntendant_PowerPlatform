@@ -6,52 +6,32 @@
 // risk_exec_flag / risk_next_review functions and the risks_before_write
 // trigger); scripts/test-db.mjs checks that both agree on all 25 ratings.
 
-export const PROBABILITIES = [
-  { value: 1, label: "Très improbable" },
-  { value: 2, label: "Improbable" },
-  { value: 3, label: "Modéré" },
-  { value: 4, label: "Probable" },
-  { value: 5, label: "Presque certain" },
-]
+// Coded values only: their labels live in src/i18n (fr.js / en.js), so the
+// interface can switch language. These modules stay language-free because
+// the Node scripts (import, demo seed, database test) use them too.
 
-export const IMPACTS = [
-  { value: 1, label: "Négligeable" },
-  { value: 2, label: "Mineur" },
-  { value: 3, label: "Modéré" },
-  { value: 4, label: "Majeur" },
-  { value: 5, label: "Sévère" },
-]
+export const PROBABILITIES = [1, 2, 3, 4, 5].map((value) => ({ value }))
+export const IMPACTS = [1, 2, 3, 4, 5].map((value) => ({ value }))
 
 // Bands confirmed by Simon (D1). Only products of two ratings are possible
 // scores, so 7, 11, 13, 14, 17–19 and 21–24 never occur.
 export const LEVELS = [
-  { code: "critique", label: "Critique", min: 20 },
-  { code: "eleve", label: "Élevé", min: 12 },
-  { code: "moyen", label: "Moyen", min: 8 },
-  { code: "faible", label: "Faible", min: 4 },
-  { code: "tres_faible", label: "Très faible", min: 1 },
+  { code: "critique", min: 20 },
+  { code: "eleve", min: 12 },
+  { code: "moyen", min: 8 },
+  { code: "faible", min: 4 },
+  { code: "tres_faible", min: 1 },
 ]
 
 export const LEVEL_BY_CODE = Object.fromEntries(LEVELS.map((level) => [level.code, level]))
 
-export const KINDS = [
-  { code: "risque", label: "Risque", hint: "Événement incertain qui pourrait survenir." },
-  { code: "enjeu", label: "Enjeu", hint: "Événement déjà survenu : la probabilité est fixée à 5." },
-]
+export const KINDS = [{ code: "risque" }, { code: "enjeu" }]
+export const STATUSES = [{ code: "actif" }, { code: "ferme" }]
+export const STRATEGIES = [{ code: "eviter" }, { code: "attenuer" }, { code: "transferer" }, { code: "accepter" }]
 
-export const STATUSES = [
-  { code: "actif", label: "Actif" },
-  { code: "ferme", label: "Fermé" },
-]
-
-export const STRATEGIES = [
-  { code: "eviter", label: "Éviter" },
-  { code: "attenuer", label: "Atténuer" },
-  { code: "transferer", label: "Transférer" },
-  { code: "accepter", label: "Accepter" },
-]
-
-// Simon's definitions, with the two typos of the source corrected.
+// Simon's definitions, with the two typos of the source corrected. The French
+// text is also the initial content of the reference grid (which management
+// then edits); the interface labels come from src/i18n.
 export const CAUSES = [
   { code: "technique", label: "Technique", hint: "Conception incomplète, coordination interdisciplinaire, etc." },
   { code: "gestion_projet", label: "Gestion de projet", hint: "Mauvaise planification, échéancier irréaliste, dérive de la portée, etc." },
@@ -91,8 +71,6 @@ export const DEFAULT_SETTINGS = {
   flag_impact4_always: false,
   require_complete_active: false,
 }
-
-export const labelOf = (list, code) => list.find((item) => item.code === code || item.value === code)?.label ?? ""
 
 export function scoreOf(probability, impact) {
   const p = Number(probability)
@@ -164,7 +142,8 @@ export function derive(risk, settings = DEFAULT_SETTINGS, today = todayISO()) {
 }
 
 // Validation shared by the form and the demo backend. Returns
-// { field: message }; empty when the record can be saved.
+// { field: messageKey } (keys of src/i18n, e.g. "errors.required"); empty
+// when the record can be saved.
 //
 // - An "enjeu" has already happened, so its probability is 5.
 // - A closed record has a closure date, unless it was closed before the
@@ -174,26 +153,26 @@ export function derive(risk, settings = DEFAULT_SETTINGS, today = todayISO()) {
 //   (after the reassessment campaign, like "stage B" in the SharePoint plan).
 export function validateRisk(values, { isNew = false, settings = DEFAULT_SETTINGS, legacyClosed = false } = {}) {
   const errors = {}
-  const missing = "Champ obligatoire."
+  const missing = "errors.required"
 
   if (!values.project_id) errors.project_id = missing
   if (!String(values.title ?? "").trim()) errors.title = missing
 
   if (values.kind === "enjeu" && values.probability && Number(values.probability) !== 5) {
-    errors.probability = "Un enjeu est un événement survenu : sa probabilité est 5 (Presque certain)."
+    errors.probability = "errors.enjeuProbability"
   }
 
   if (values.status === "ferme" && !values.closed_date && !legacyClosed) {
-    errors.closed_date = "Un élément fermé doit avoir une date de fermeture."
+    errors.closed_date = "errors.closedDate"
   }
 
   if (values.delay_days !== "" && values.delay_days != null) {
     const delay = Number(values.delay_days)
-    if (!Number.isInteger(delay) || delay < 0) errors.delay_days = "Le délai doit être un nombre entier positif ou nul."
+    if (!Number.isInteger(delay) || delay < 0) errors.delay_days = "errors.delay"
   }
 
   if (values.cost !== "" && values.cost != null && (Number.isNaN(Number(values.cost)) || Number(values.cost) < 0)) {
-    errors.cost = "Le coût doit être un montant positif ou nul."
+    errors.cost = "errors.cost"
   }
 
   const strict = values.status === "actif" && (isNew || settings.require_complete_active)
@@ -206,13 +185,12 @@ export function validateRisk(values, { isNew = false, settings = DEFAULT_SETTING
   return errors
 }
 
-// French messages for the errors the database can return (check constraints
-// and the trigger's hints), so a rule broken outside the form still reads well.
+// Message keys for the errors the database can return (check constraints and
+// the trigger's hints), so a rule broken outside the form still reads well.
 export const DB_ERRORS = {
-  enjeu_probability: "Enregistrement refusé : un enjeu doit avoir une probabilité de 5 (Presque certain).",
-  closed_needs_date: "Enregistrement refusé : un élément fermé doit avoir une date de fermeture.",
-  incomplete_active:
-    "Enregistrement refusé : un élément actif doit avoir risque/enjeu, cause, propriétaire, probabilité, impact et stratégie de réponse.",
-  risks_delay_days_check: "Le délai doit être un nombre entier positif ou nul.",
-  risks_cost_check: "Le coût doit être un montant positif ou nul.",
+  enjeu_probability: "errors.dbEnjeu",
+  closed_needs_date: "errors.dbClosed",
+  incomplete_active: "errors.dbIncomplete",
+  risks_delay_days_check: "errors.delay",
+  risks_cost_check: "errors.cost",
 }

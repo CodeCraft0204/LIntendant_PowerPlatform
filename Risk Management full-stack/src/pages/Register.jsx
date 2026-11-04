@@ -4,8 +4,9 @@ import { usePeople, useProjects, useRisks } from "../api/hooks.js"
 import Icon from "../components/Icon.jsx"
 import { RiskTable } from "../components/risk.jsx"
 import { Alert, Page, PageHeader, PageSpinner, useDebounced } from "../components/ui.jsx"
-import { CAUSES, LEVELS, labelOf } from "../domain/rules.js"
+import { CAUSES, LEVELS } from "../domain/rules.js"
 import { matchesSearch, VIEW_BY_ID, VIEWS } from "../domain/views.js"
+import { useI18n } from "../i18n/index.js"
 import { useAuth } from "../lib/auth.jsx"
 import { exportRisks } from "../lib/exportCsv.js"
 import { can } from "../lib/roles.js"
@@ -52,6 +53,7 @@ export function applyFilters(rows, filters) {
 }
 
 export default function Register() {
+  const { t, labelOf } = useI18n()
   const { profile, role } = useAuth()
   const filters = useRegisterFilters()
   const { data: risks, isLoading, error } = useRisks()
@@ -77,59 +79,59 @@ export default function Register() {
   const filtered = filters.project || filters.level || filters.cause || filters.owner || filters.probability || query
   const usedProjects = useMemo(() => {
     const numbers = new Set((risks ?? []).map((risk) => risk.project_number))
-    return (projects ?? []).filter((project) => numbers.has(project.number))
+    return (projects ?? []).filter((item) => numbers.has(item.number))
   }, [risks, projects])
 
   return (
     <>
       <PageHeader
-        eyebrow="Registre"
-        title="Risques et enjeux"
-        subtitle={risks ? `${rows.length} élément${rows.length > 1 ? "s" : ""} dans la vue « ${filters.view.label} »` : "Chargement…"}
+        eyebrow={t("register.eyebrow")}
+        title={t("register.title")}
+        subtitle={risks ? t("register.subtitle", { count: rows.length, view: t(`view.${filters.view.id}`) }) : t("common.loading")}
         actions={
           <>
-            <button type="button" className="btn btn-secondary" disabled={!rows.length} onClick={() => exportRisks(rows, `risques-${filters.view.id}.csv`)}>
+            <button type="button" className="btn btn-secondary" disabled={!rows.length} onClick={() => exportRisks(rows, filters.view.id)}>
               <Icon name="download" />
-              Exporter
+              {t("common.export")}
             </button>
             {can.editRisks(role) && (
               <Link to={filters.project ? `/risques/nouveau?projet=${filters.project}` : "/risques/nouveau"} className="btn btn-primary">
                 <Icon name="plus" />
-                Nouveau
+                {t("common.new")}
               </Link>
             )}
           </>
         }
       />
       <Page>
-        <div className="segmented" role="tablist" aria-label="Vues du registre">
-          {VIEWS.map((view) => (
+        <div className="segmented" role="tablist" aria-label={t("register.views")}>
+          {VIEWS.map((item) => (
             <button
-              key={view.id}
+              key={item.id}
               type="button"
               role="tab"
-              aria-selected={view.id === filters.view.id}
+              aria-selected={item.id === filters.view.id}
               onClick={() => {
                 setSort(null)
-                filters.set({ vue: view.id })
+                filters.set({ vue: item.id })
               }}
-              title={view.hint}
+              title={item.hint ? t(`viewHint.${item.id}`) : undefined}
             >
-              {view.label}
-              <span className="count">{counts[view.id] ?? 0}</span>
+              {t(`view.${item.id}`)}
+              <span className="count">{counts[item.id] ?? 0}</span>
             </button>
           ))}
         </div>
-        {filters.view.hint && <p className="mt-2 text-xs text-muted">{filters.view.hint}</p>}
+        {filters.view.hint && <p className="mt-2 text-xs text-muted">{t(`viewHint.${filters.view.id}`)}</p>}
 
         <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(0,1fr))]">
           <label className="relative">
-            <span className="sr-only">Rechercher</span>
+            <span className="sr-only">{t("common.search")}</span>
             <Icon name="search" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
             <input
               className="input pl-9"
               type="search"
-              placeholder="Rechercher titre, projet, propriétaire, R-0042…"
+              placeholder={t("register.searchPlaceholder")}
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value)
@@ -137,40 +139,40 @@ export default function Register() {
               }}
             />
           </label>
-          <select className="input" value={filters.project} onChange={(event) => filters.set({ projet: event.target.value })} aria-label="Projet">
-            <option value="">Tous les projets</option>
-            {usedProjects.map((project) => (
-              <option key={project.id} value={project.number}>
-                {project.number} · {project.name}
+          <select className="input" value={filters.project} onChange={(event) => filters.set({ projet: event.target.value })} aria-label={t("common.project")}>
+            <option value="">{t("common.allProjects")}</option>
+            {usedProjects.map((item) => (
+              <option key={item.id} value={item.number}>
+                {item.number} · {item.name}
               </option>
             ))}
           </select>
-          <select className="input" value={filters.level} onChange={(event) => filters.set({ niveau: event.target.value })} aria-label="Niveau">
-            <option value="">Tous les niveaux</option>
-            {LEVELS.map((level) => (
-              <option key={level.code} value={level.code}>
-                {level.label}
+          <select className="input" value={filters.level} onChange={(event) => filters.set({ niveau: event.target.value })} aria-label={t("common.level")}>
+            <option value="">{t("register.allLevels")}</option>
+            {LEVELS.map((item) => (
+              <option key={item.code} value={item.code}>
+                {labelOf("level", item.code)}
               </option>
             ))}
-            <option value="none">Non coté</option>
+            <option value="none">{t("common.notRated")}</option>
           </select>
-          <select className="input" value={filters.cause} onChange={(event) => filters.set({ cause: event.target.value })} aria-label="Cause">
-            <option value="">Toutes les causes</option>
-            {CAUSES.map((cause) => (
-              <option key={cause.code} value={cause.code}>
-                {cause.label}
+          <select className="input" value={filters.cause} onChange={(event) => filters.set({ cause: event.target.value })} aria-label={t("risk.cause")}>
+            <option value="">{t("register.allCauses")}</option>
+            {CAUSES.map((item) => (
+              <option key={item.code} value={item.code}>
+                {labelOf("cause", item.code)}
               </option>
             ))}
-            <option value="none">Cause non précisée</option>
+            <option value="none">{t("register.noCause")}</option>
           </select>
-          <select className="input" value={filters.owner} onChange={(event) => filters.set({ proprietaire: event.target.value })} aria-label="Propriétaire">
-            <option value="">Tous les propriétaires</option>
+          <select className="input" value={filters.owner} onChange={(event) => filters.set({ proprietaire: event.target.value })} aria-label={t("common.owner")}>
+            <option value="">{t("register.allOwners")}</option>
             {(people ?? []).map((person) => (
               <option key={person.id} value={person.id}>
                 {person.full_name}
               </option>
             ))}
-            <option value="none">Sans propriétaire</option>
+            <option value="none">{t("common.noOwner")}</option>
           </select>
         </div>
 
@@ -178,13 +180,13 @@ export default function Register() {
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted">
             {filters.probability && filters.impact && (
               <span className="pill">
-                Case P{filters.probability} × I{filters.impact}
-                <button type="button" onClick={() => filters.set({ p: "", i: "" })} aria-label="Retirer le filtre de la matrice">
+                {t("register.cellChip", { p: filters.probability, i: filters.impact })}
+                <button type="button" onClick={() => filters.set({ p: "", i: "" })} aria-label={t("register.removeCell")}>
                   <Icon name="close" className="size-3" />
                 </button>
               </span>
             )}
-            {filters.cause && filters.cause !== "none" && <span className="pill pill-muted">{labelOf(CAUSES, filters.cause)}</span>}
+            {filters.cause && filters.cause !== "none" && <span className="pill pill-muted">{labelOf("cause", filters.cause)}</span>}
             <button
               type="button"
               className="btn btn-ghost btn-sm"
@@ -193,7 +195,7 @@ export default function Register() {
                 filters.set({ q: "", projet: "", niveau: "", cause: "", proprietaire: "", p: "", i: "" })
               }}
             >
-              Effacer les filtres
+              {t("common.clearFilters")}
             </button>
           </div>
         )}
@@ -211,7 +213,7 @@ export default function Register() {
               sort={activeSort}
               onSort={setSort}
               group={filters.view.group}
-              emptyText={filters.view.id === "mes-risques" ? "Aucun élément actif ne vous est attribué." : "Aucun élément ne correspond à cette vue et à ces filtres."}
+              emptyText={filters.view.id === "mes-risques" ? t("register.emptyMine") : t("register.empty")}
             />
           )}
         </section>

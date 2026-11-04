@@ -5,6 +5,7 @@ import Icon from "../components/Icon.jsx"
 import { LevelBadge } from "../components/risk.jsx"
 import { Alert, Page, PageHeader, PageSpinner } from "../components/ui.jsx"
 import { matchesSearch } from "../domain/views.js"
+import { useI18n } from "../i18n/index.js"
 import { formatMoney } from "../lib/format.js"
 
 const rank = { critique: 5, eleve: 4, moyen: 3, faible: 2, tres_faible: 1 }
@@ -34,6 +35,7 @@ export function projectStats(projects, risks) {
 }
 
 export default function Projects() {
+  const { t } = useI18n()
   const navigate = useNavigate()
   const { data: projects, isLoading, error } = useProjects()
   const { data: risks } = useRisks()
@@ -50,18 +52,18 @@ export default function Projects() {
 
   return (
     <>
-      <PageHeader eyebrow="Registre" title="Projets" subtitle="Risques et enjeux par chantier. Chaque projet a son lien, à épingler dans son canal Teams." />
+      <PageHeader eyebrow={t("projects.eyebrow")} title={t("projects.title")} subtitle={t("projects.subtitle")} />
       <Page>
         <Alert>{error?.message}</Alert>
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <label className="relative min-w-[16rem] flex-1 sm:max-w-sm">
-            <span className="sr-only">Rechercher un projet</span>
+            <span className="sr-only">{t("projects.search")}</span>
             <Icon name="search" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
-            <input className="input pl-9" type="search" placeholder="Numéro ou nom du projet" value={query} onChange={(event) => setQuery(event.target.value)} />
+            <input className="input pl-9" type="search" placeholder={t("projects.searchPlaceholder")} value={query} onChange={(event) => setQuery(event.target.value)} />
           </label>
           <label className="check">
             <input type="checkbox" checked={onlyActive} onChange={(event) => setOnlyActive(event.target.checked)} />
-            Seulement les projets avec des éléments actifs
+            {t("projects.onlyActive")}
           </label>
         </div>
 
@@ -73,15 +75,15 @@ export default function Projects() {
               <table className="table">
                 <thead>
                   <tr>
-                    <th>Projet</th>
-                    <th className="num">Actifs</th>
-                    <th className="num">Crit./élevés</th>
-                    <th className="num">Direction</th>
-                    <th className="num">À recoter</th>
-                    <th className="num">Révisions échues</th>
-                    <th>Niveau max.</th>
-                    <th className="num">Coût estimé</th>
-                    <th className="num">Fermés</th>
+                    <th>{t("common.project")}</th>
+                    <th className="num">{t("dashboard.colActive")}</th>
+                    <th className="num">{t("dashboard.colHigh")}</th>
+                    <th className="num">{t("dashboard.colFlag")}</th>
+                    <th className="num">{t("projects.colToRate")}</th>
+                    <th className="num">{t("projects.colOverdue")}</th>
+                    <th>{t("dashboard.colMax")}</th>
+                    <th className="num">{t("dashboard.colCost")}</th>
+                    <th className="num">{t("projects.colClosed")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -107,7 +109,7 @@ export default function Projects() {
               </table>
             </div>
           ) : (
-            <p className="px-5 py-10 text-center text-sm text-muted">Aucun projet ne correspond.</p>
+            <p className="px-5 py-10 text-center text-sm text-muted">{t("projects.empty")}</p>
           )}
         </section>
       </Page>

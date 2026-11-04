@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { lazy, Suspense, useState } from "react"
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router"
+import LanguageToggle from "./components/LanguageToggle.jsx"
 import Layout from "./components/Layout.jsx"
 import { AuthScreen, EmptyState, FullScreenLoader, PageSpinner } from "./components/ui.jsx"
+import { useI18n } from "./i18n/index.js"
 import { AuthProvider, useAuth } from "./lib/auth.jsx"
 import { canOpen, SECTIONS } from "./lib/roles.js"
 import Dashboard from "./pages/Dashboard.jsx"
@@ -16,6 +18,7 @@ const Reference = lazy(() => import("./pages/Reference.jsx"))
 const Admin = lazy(() => import("./pages/Admin.jsx"))
 
 function AwaitingAccess() {
+  const { t } = useI18n()
   const { profile, signOut, reloadProfile } = useAuth()
   const [checking, setChecking] = useState(false)
   const paused = profile?.active === false
@@ -23,11 +26,11 @@ function AwaitingAccess() {
   return (
     <AuthScreen
       icon={paused ? "lock" : "clock"}
-      title={paused ? "Votre accès est suspendu" : "Presque prêt"}
+      title={paused ? t("auth.pausedTitle") : t("auth.pendingTitle")}
       description={
         paused
-          ? `${profile?.email ?? "Ce compte"} ne peut pas ouvrir le registre pour le moment. Communiquez avec un administrateur.`
-          : `Votre compte${profile?.email ? ` (${profile.email})` : ""} est créé. Un administrateur doit maintenant vous attribuer un rôle.`
+          ? t("auth.pausedText", { email: profile?.email ?? t("auth.thisAccount") })
+          : t("auth.pendingText", { email: profile?.email ? `(${profile.email}) ` : "" })
       }
     >
       <div className="grid gap-3">
@@ -42,11 +45,11 @@ function AwaitingAccess() {
               setChecking(false)
             }}
           >
-            {checking ? "Vérification…" : "Vérifier de nouveau"}
+            {checking ? t("auth.checking") : t("auth.checkAgain")}
           </button>
         )}
         <button type="button" className="btn btn-secondary w-full" onClick={signOut}>
-          Se déconnecter
+          {t("common.signOut")}
         </button>
       </div>
     </AuthScreen>
@@ -65,13 +68,14 @@ function Gate() {
 }
 
 function Guarded({ path, children }) {
+  const { t } = useI18n()
   const { role } = useAuth()
   const section = SECTIONS.find((item) => item.path === path)
   if (section && !canOpen(section, role)) {
     return (
       <div className="page-inner page-body">
-        <EmptyState icon="lock" title="Section non disponible pour votre rôle">
-          Communiquez avec un administrateur si vous avez besoin d'accéder à {section.label.toLowerCase()}.
+        <EmptyState icon="lock" title={t("auth.sectionLockedTitle")}>
+          {t("auth.sectionLockedText", { section: t(`section.${section.path}`).toLowerCase() })}
         </EmptyState>
       </div>
     )
@@ -84,10 +88,14 @@ const newQueryClient = () =>
 
 export default function App() {
   const [queryClient] = useState(newQueryClient)
+  // Subscribing here re-renders the whole tree when the language changes, in
+  // place: open forms keep their unsaved edits.
+  useI18n()
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <LanguageToggle />
         <BrowserRouter>
           <Routes>
             <Route path="/connexion" element={<Login />} />

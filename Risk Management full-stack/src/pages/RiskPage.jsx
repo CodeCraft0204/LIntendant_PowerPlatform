@@ -15,23 +15,12 @@ import {
   useSettings,
   useUploadAttachment,
 } from "../api/hooks.js"
-import { EventItem, NOTE_TYPE_OPTIONS } from "../components/events.jsx"
+import { EventItem, NOTE_TYPES } from "../components/events.jsx"
 import Icon from "../components/Icon.jsx"
 import { LevelBadge, RiskMatrix, StatusPill } from "../components/risk.jsx"
 import { Alert, Card, EmptyState, Field, Page, PageHeader, PageSpinner, toast } from "../components/ui.jsx"
-import {
-  CAUSES,
-  derive,
-  IMPACTS,
-  KINDS,
-  LEVEL_BY_CODE,
-  PROBABILITIES,
-  STATUSES,
-  STRATEGIES,
-  todayISO,
-  validateRisk,
-  labelOf,
-} from "../domain/rules.js"
+import { CAUSES, derive, IMPACTS, KINDS, PROBABILITIES, STATUSES, STRATEGIES, todayISO, validateRisk } from "../domain/rules.js"
+import { causeDescription, useI18n } from "../i18n/index.js"
 import { useAuth } from "../lib/auth.jsx"
 import { formatDate, formatDateTime, formatMoney, riskRef } from "../lib/format.js"
 import { can } from "../lib/roles.js"
@@ -86,6 +75,7 @@ function Choice({ name, options, value, onChange, disabled }) {
 }
 
 function Attachments({ riskId, canEdit, canRemove }) {
+  const { t } = useI18n()
   const { data: attachments, isLoading } = useAttachments(riskId)
   const upload = useUploadAttachment(riskId)
   const remove = useDeleteAttachment(riskId)
@@ -96,7 +86,7 @@ function Attachments({ riskId, canEdit, canRemove }) {
     setError(null)
     for (const file of fileList) {
       if (file.size > 50 * 1024 * 1024) {
-        setError(`${file.name} dépasse 50 Mo.`)
+        setError(t("errors.fileTooLarge", { name: file.name }))
         continue
       }
       try {
@@ -105,7 +95,7 @@ function Attachments({ riskId, canEdit, canRemove }) {
         setError(failure.message)
       }
     }
-    toast("Fichier ajouté")
+    toast(t("attachments.added"))
   }
 
   const open = async (attachment) => {
@@ -118,14 +108,14 @@ function Attachments({ riskId, canEdit, canRemove }) {
 
   return (
     <Card
-      title="Pièces jointes"
+      title={t("attachments.title")}
       actions={
         canEdit && (
           <>
             <input ref={input} type="file" multiple hidden onChange={(event) => onFiles([...event.target.files]).then(() => (event.target.value = ""))} />
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => input.current.click()} disabled={upload.isPending}>
               <Icon name="upload" />
-              {upload.isPending ? "Envoi…" : "Ajouter"}
+              {upload.isPending ? t("attachments.uploading") : t("common.add")}
             </button>
           </>
         )
@@ -133,7 +123,7 @@ function Attachments({ riskId, canEdit, canRemove }) {
     >
       <Alert>{error}</Alert>
       {isLoading ? (
-        <p className="text-sm text-muted">Chargement…</p>
+        <p className="text-sm text-muted">{t("common.loading")}</p>
       ) : attachments?.length ? (
         <ul className="grid gap-1.5">
           {attachments.map((attachment) => (
@@ -142,13 +132,15 @@ function Attachments({ riskId, canEdit, canRemove }) {
               <button type="button" className="min-w-0 flex-1 truncate text-left text-[13px] font-medium text-link hover:underline" onClick={() => open(attachment)}>
                 {attachment.file_name}
               </button>
-              {attachment.size_bytes != null && <span className="text-[11px] text-muted">{Math.max(1, Math.round(attachment.size_bytes / 1024))} Ko</span>}
+              {attachment.size_bytes != null && (
+                <span className="text-[11px] text-muted">{t("attachments.kb", { size: Math.max(1, Math.round(attachment.size_bytes / 1024)) })}</span>
+              )}
               {canRemove && (
                 <button
                   type="button"
                   className="btn btn-ghost btn-sm btn-icon"
-                  aria-label={`Retirer ${attachment.file_name}`}
-                  onClick={() => window.confirm(`Retirer « ${attachment.file_name} » ?`) && remove.mutate(attachment)}
+                  aria-label={t("attachments.remove", { name: attachment.file_name })}
+                  onClick={() => window.confirm(t("attachments.confirmRemove", { name: attachment.file_name })) && remove.mutate(attachment)}
                 >
                   <Icon name="trash" />
                 </button>
@@ -157,13 +149,14 @@ function Attachments({ riskId, canEdit, canRemove }) {
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-muted">Aucune pièce jointe.</p>
+        <p className="text-sm text-muted">{t("attachments.empty")}</p>
       )}
     </Card>
   )
 }
 
 function Journal({ riskId, canEdit }) {
+  const { t, labelOf } = useI18n()
   const { data: events, isLoading } = useEvents(riskId)
   const addNote = useAddNote(riskId)
   const [noteType, setNoteType] = useState("mise_a_jour")
@@ -176,21 +169,21 @@ function Journal({ riskId, canEdit }) {
     try {
       await addNote.mutateAsync({ noteType, body })
       setBody("")
-      toast("Note ajoutée au journal")
+      toast(t("journal.added"))
     } catch (failure) {
       setError(failure.message)
     }
   }
 
   return (
-    <Card title="Journal des interventions">
+    <Card title={t("journal.title")}>
       {canEdit && (
         <form className="mb-5 grid gap-2" onSubmit={submit}>
           <div className="flex gap-2">
-            <select className="input w-auto" value={noteType} onChange={(event) => setNoteType(event.target.value)} aria-label="Type d'intervention">
-              {NOTE_TYPE_OPTIONS.map((option) => (
-                <option key={option.code} value={option.code}>
-                  {option.label}
+            <select className="input w-auto" value={noteType} onChange={(event) => setNoteType(event.target.value)} aria-label={t("journal.type")}>
+              {NOTE_TYPES.map((code) => (
+                <option key={code} value={code}>
+                  {labelOf("noteType", code)}
                 </option>
               ))}
             </select>
@@ -198,21 +191,21 @@ function Journal({ riskId, canEdit }) {
           <textarea
             className="input"
             rows={3}
-            placeholder="Mise à jour, action prise, décision du comité…"
+            placeholder={t("journal.placeholder")}
             value={body}
             onChange={(event) => setBody(event.target.value)}
-            aria-label="Texte de la note"
+            aria-label={t("journal.text")}
           />
           <Alert>{error}</Alert>
           <div className="flex justify-end">
             <button type="submit" className="btn btn-primary btn-sm" disabled={!body.trim() || addNote.isPending}>
-              Ajouter au journal
+              {t("journal.add")}
             </button>
           </div>
         </form>
       )}
       {isLoading ? (
-        <p className="text-sm text-muted">Chargement…</p>
+        <p className="text-sm text-muted">{t("common.loading")}</p>
       ) : events?.length ? (
         <ul className="timeline">
           {events.map((event) => (
@@ -220,36 +213,39 @@ function Journal({ riskId, canEdit }) {
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-muted">Les révisions de cote, fermetures et notes s'inscrivent ici automatiquement.</p>
+        <p className="text-sm text-muted">{t("journal.empty")}</p>
       )}
     </Card>
   )
 }
 
+// Reference-grid guidance for the chosen ratings. Labels follow the interface
+// language; the descriptions are the grid's content, as management wrote it.
 function Guidance({ reference, probability, impact }) {
+  const { t, labelOf } = useI18n()
   const p = reference?.find((row) => row.scale === "probabilite" && row.rating === Number(probability))
   const i = reference?.find((row) => row.scale === "impact" && row.rating === Number(impact))
-  if (!p && !i) return <p className="text-xs text-muted">Choisissez une case de la matrice, ou la probabilité et l'impact ci-dessous.</p>
+  if (!p && !i) return <p className="text-xs text-muted">{t("guidance.pick")}</p>
   const guides = i
     ? [
-        ["Coût", i.cost_guide],
-        ["Délai", i.delay_guide],
-        ["Qualité", i.quality_guide],
-        ["Santé et sécurité", i.hs_guide],
-        ["Réputation", i.reputation_guide],
+        [t("guide.cost"), i.cost_guide],
+        [t("guide.delay"), i.delay_guide],
+        [t("guide.quality"), i.quality_guide],
+        [t("guide.hs"), i.hs_guide],
+        [t("guide.reputation"), i.reputation_guide],
       ].filter(([, text]) => text)
     : []
   return (
     <div className="grid gap-3 rounded-md bg-[var(--surface-2)] p-3 text-xs leading-relaxed text-ink-2 sm:grid-cols-2">
       {p && (
         <div>
-          <p className="font-bold text-ink">Probabilité · {p.label}</p>
+          <p className="font-bold text-ink">{t("guidance.probability", { label: `${p.rating} - ${labelOf("probability", p.rating)}` })}</p>
           <p className="mt-0.5">{p.description || "—"}</p>
         </div>
       )}
       {i && (
         <div>
-          <p className="font-bold text-ink">Impact · {i.label}</p>
+          <p className="font-bold text-ink">{t("guidance.impact", { label: `${i.rating} - ${labelOf("impact", i.rating)}` })}</p>
           {i.description && <p className="mt-0.5">{i.description}</p>}
           {guides.length > 0 && (
             <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-2">
@@ -265,7 +261,7 @@ function Guidance({ reference, probability, impact }) {
       )}
       <p className="text-muted sm:col-span-2">
         <Link to="/reference" className="link" target="_blank">
-          Grille de référence complète
+          {t("guidance.full")}
         </Link>
       </p>
     </div>
@@ -273,6 +269,7 @@ function Guidance({ reference, probability, impact }) {
 }
 
 function RiskForm({ risk, isNew }) {
+  const { t, labelOf } = useI18n()
   const { profile, role } = useAuth()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -292,6 +289,7 @@ function RiskForm({ risk, isNew }) {
   }, [isNew, risk, projects, people, params, profile.id])
 
   const [values, setValues] = useState(initial)
+  // Field errors hold message keys, so they follow a language switch.
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState(null)
   const [showCauses, setShowCauses] = useState(false)
@@ -348,7 +346,7 @@ function RiskForm({ risk, isNew }) {
     }
     try {
       const { id } = await save.mutateAsync({ id: isNew ? null : risk.id, values })
-      toast(isNew ? "Élément créé" : "Modifications enregistrées")
+      toast(isNew ? t("risk.createdToast") : t("risk.savedToast"))
       if (isNew) navigate(`/risques/${id}`, { replace: true })
     } catch (failure) {
       setServerError(failure.message)
@@ -357,14 +355,18 @@ function RiskForm({ risk, isNew }) {
 
   const project = projects?.find((item) => item.id === values.project_id)
   const activePeople = (people ?? []).filter((person) => person.active || person.id === values.owner_id || person.id === values.exec_contact_id)
-  // Cause descriptions come from the reference grid (management edits them
-  // there); the built-in text is the fallback.
+
   const causes = CAUSES.map((item) => ({
-    ...item,
-    hint: reference?.find((row) => row.scale === "cause" && row.code === item.code)?.description || item.hint,
+    code: item.code,
+    label: labelOf("cause", item.code),
+    hint: causeDescription(reference?.find((row) => row.scale === "cause" && row.code === item.code)?.description, item.code, t),
   }))
   const cause = causes.find((item) => item.code === values.cause)
+  const kinds = KINDS.map((item) => ({ code: item.code, label: labelOf("kind", item.code), hint: t(`kindHint.${item.code}`) }))
+  const statuses = STATUSES.map((item) => ({ code: item.code, label: labelOf("status", item.code) }))
+  const strategies = STRATEGIES.map((item) => ({ code: item.code, label: labelOf("strategy", item.code) }))
   const hasHistory = risk && (risk.legacy_type || risk.legacy_risk_index || risk.legacy_other_impacts || risk.legacy_sp_id || risk.legacy_created_at)
+  const error = (name) => (errors[name] ? t(errors[name]) : undefined)
 
   const field = (name) => ({
     id: `field-${name}`,
@@ -376,16 +378,16 @@ function RiskForm({ risk, isNew }) {
   return (
     <>
       <PageHeader
-        eyebrow={isNew ? "Nouvel élément" : `${riskRef(risk.id)} · ${risk.project_number} ${risk.project_name}`}
-        title={isNew ? "Nouveau risque ou enjeu" : risk.title}
+        eyebrow={isNew ? t("risk.newEyebrow") : `${riskRef(risk.id)} · ${risk.project_number} ${risk.project_name}`}
+        title={isNew ? t("risk.newTitle") : risk.title}
         subtitle={
           isNew
-            ? "Les champs marqués * sont obligatoires pour un élément actif."
+            ? t("risk.newSubtitle")
             : risk.legacy_created_at
-              ? `Repris de SharePoint${risk.legacy_sp_id ? ` (ID ${risk.legacy_sp_id})` : ""} · créé le ${formatDateTime(risk.legacy_created_at)}${risk.legacy_created_by ? ` par ${risk.legacy_created_by}` : ""}`
-              : `Créé le ${formatDateTime(risk.created_at)}`
+              ? t("risk.imported", { id: risk.legacy_sp_id, date: formatDateTime(risk.legacy_created_at), by: risk.legacy_created_by })
+              : t("risk.created", { date: formatDateTime(risk.created_at) })
         }
-        back={{ to: "/risques", label: "Retour au registre" }}
+        back={{ to: "/risques", label: t("risk.backToRegister") }}
         actions={
           !isNew && (
             <>
@@ -396,14 +398,14 @@ function RiskForm({ risk, isNew }) {
                   type="button"
                   className="btn btn-danger btn-sm"
                   onClick={async () => {
-                    if (!window.confirm(`Supprimer définitivement ${riskRef(risk.id)} et son journal ? Pour un élément terminé, préférez le statut Fermé.`)) return
+                    if (!window.confirm(t("risk.confirmDelete", { ref: riskRef(risk.id) }))) return
                     await remove.mutateAsync(risk.id)
-                    toast("Élément supprimé")
+                    toast(t("risk.deleted"))
                     navigate("/risques", { replace: true })
                   }}
                 >
                   <Icon name="trash" />
-                  Supprimer
+                  {t("common.delete")}
                 </button>
               )}
             </>
@@ -414,24 +416,23 @@ function RiskForm({ risk, isNew }) {
         {!isNew && risk.needs_rating && (
           <div className="mb-4">
             <Alert tone="warn">
-              <strong>À recoter.</strong> Cet élément actif vient de SharePoint et n'a pas encore de cote. Complétez risque/enjeu, cause, probabilité, impact et
-              stratégie de réponse.
+              <strong>{t("risk.toRateTitle")}</strong> {t("risk.toRateText")}
             </Alert>
           </div>
         )}
         {!canEdit && (
           <div className="mb-4">
-            <Alert tone="info">Consultation seulement : votre rôle ne permet pas de modifier le registre.</Alert>
+            <Alert tone="info">{t("risk.readOnly")}</Alert>
           </div>
         )}
 
         <form onSubmit={submit} noValidate className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_21rem]">
           <div className="grid gap-5">
-            <Card title="Identification">
+            <Card title={t("risk.identification")}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Projet" htmlFor="field-project_id" required error={errors.project_id} className="sm:col-span-2">
+                <Field label={t("common.project")} htmlFor="field-project_id" required error={error("project_id")} className="sm:col-span-2">
                   <select className="input" value={values.project_id} onChange={(event) => set({ project_id: event.target.value })} {...field("project_id")}>
-                    <option value="">Choisir un projet…</option>
+                    <option value="">{t("risk.chooseProject")}</option>
                     {(projects ?? [])
                       .filter((item) => item.active || item.id === values.project_id)
                       .map((item) => (
@@ -441,55 +442,58 @@ function RiskForm({ risk, isNew }) {
                       ))}
                   </select>
                 </Field>
-                <Field label="Titre" htmlFor="field-title" required error={errors.title} className="sm:col-span-2">
+                <Field label={t("common.title")} htmlFor="field-title" required error={error("title")} className="sm:col-span-2">
                   <textarea className="input min-h-[3.25rem]" rows={2} value={values.title} onChange={(event) => set({ title: event.target.value })} {...field("title")} />
                 </Field>
-                <Field label="Risque ou enjeu" htmlFor="field-kind" required={strict} error={errors.kind} hint={labelOf(KINDS, values.kind) && KINDS.find((kind) => kind.code === values.kind)?.hint}>
+                <Field
+                  label={t("risk.kind")}
+                  htmlFor="field-kind"
+                  required={strict}
+                  error={error("kind")}
+                  hint={values.kind ? t(`kindHint.${values.kind}`) : undefined}
+                >
                   <div id="field-kind">
-                    <Choice name="Risque ou enjeu" options={KINDS} value={values.kind} onChange={(kind) => set({ kind })} disabled={disabled} />
+                    <Choice name={t("risk.kind")} options={kinds} value={values.kind} onChange={(kind) => set({ kind })} disabled={disabled} />
                   </div>
                 </Field>
-                <Field label="Statut" htmlFor="field-status">
+                <Field label={t("common.status")} htmlFor="field-status">
                   <div id="field-status">
-                    <Choice name="Statut" options={STATUSES} value={values.status} onChange={(status) => set({ status })} disabled={disabled} />
+                    <Choice name={t("common.status")} options={statuses} value={values.status} onChange={(status) => set({ status })} disabled={disabled} />
                   </div>
                 </Field>
-                <Field label="Cause" htmlFor="field-cause" required={strict} error={errors.cause} className="sm:col-span-2">
+                <Field label={t("risk.cause")} htmlFor="field-cause" required={strict} error={error("cause")} className="sm:col-span-2">
                   <select className="input" value={values.cause} onChange={(event) => set({ cause: event.target.value })} {...field("cause")}>
-                    <option value="">Choisir une cause…</option>
-                    {CAUSES.map((item) => (
+                    <option value="">{t("risk.chooseCause")}</option>
+                    {causes.map((item) => (
                       <option key={item.code} value={item.code}>
                         {item.label}
                       </option>
                     ))}
                   </select>
                   <div className="flex flex-wrap items-start justify-between gap-2">
-                    <p className="field-hint">{cause ? cause.hint : "La description de la cause choisie s'affiche ici."}</p>
+                    <p className="field-hint">{cause ? cause.hint : t("risk.causePlaceholder")}</p>
                     <button type="button" className="link shrink-0 text-xs" onClick={() => setShowCauses((open) => !open)} aria-expanded={showCauses}>
-                      {showCauses ? "Masquer le guide des causes" : "Guide des causes"}
+                      {showCauses ? t("risk.hideCauseGuide") : t("risk.causeGuide")}
                     </button>
                   </div>
                   {showCauses && (
                     <ul className="mt-1 grid gap-1.5 rounded-md bg-[var(--surface-2)] p-3 text-xs leading-relaxed">
                       {causes.map((item) => (
                         <li key={item.code}>
-                          <span className="font-bold text-ink">{item.label} :</span> {item.hint}
+                          <span className="font-bold text-ink">{t("common.labelled", { label: item.label })}</span> {item.hint}
                         </li>
                       ))}
                     </ul>
                   )}
-                  {risk?.legacy_type && !values.cause && <p className="field-hint">Ancien type SharePoint : {risk.legacy_type}</p>}
+                  {risk?.legacy_type && !values.cause && <p className="field-hint">{t("risk.legacyType", { type: risk.legacy_type })}</p>}
                 </Field>
-                <Field label="Détails" htmlFor="field-details" className="sm:col-span-2">
+                <Field label={t("risk.details")} htmlFor="field-details" className="sm:col-span-2">
                   <textarea className="input" rows={3} value={values.details} onChange={(event) => set({ details: event.target.value })} {...field("details")} />
                 </Field>
               </div>
             </Card>
 
-            <Card
-              title="Évaluation"
-              actions={<LevelBadge level={live.level} score={live.score} empty="Non évalué" />}
-            >
+            <Card title={t("risk.assessment")} actions={<LevelBadge level={live.level} score={live.score} empty={t("common.notAssessed")} />}>
               <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_13rem]">
                 <RiskMatrix
                   value={{ probability: values.probability, impact: values.impact }}
@@ -498,7 +502,13 @@ function RiskForm({ risk, isNew }) {
                   disabled={disabled}
                 />
                 <div className="grid content-start gap-4">
-                  <Field label="Probabilité" htmlFor="field-probability" required={strict} error={errors.probability} hint={values.kind === "enjeu" ? "Fixée à 5 pour un enjeu." : undefined}>
+                  <Field
+                    label={t("risk.probability")}
+                    htmlFor="field-probability"
+                    required={strict}
+                    error={error("probability")}
+                    hint={values.kind === "enjeu" ? t("risk.probabilityLocked") : undefined}
+                  >
                     <select
                       className="input"
                       value={values.probability}
@@ -509,17 +519,17 @@ function RiskForm({ risk, isNew }) {
                       <option value="">—</option>
                       {PROBABILITIES.map((item) => (
                         <option key={item.value} value={item.value}>
-                          {item.value} - {item.label}
+                          {item.value} - {labelOf("probability", item.value)}
                         </option>
                       ))}
                     </select>
                   </Field>
-                  <Field label="Impact" htmlFor="field-impact" required={strict} error={errors.impact} hint="La conséquence la plus grave parmi coût, délai, qualité, SST et réputation.">
+                  <Field label={t("risk.impact")} htmlFor="field-impact" required={strict} error={error("impact")} hint={t("risk.impactHint")}>
                     <select className="input" value={values.impact} onChange={(event) => set({ impact: event.target.value ? Number(event.target.value) : "" })} {...field("impact")}>
                       <option value="">—</option>
                       {IMPACTS.map((item) => (
                         <option key={item.value} value={item.value}>
-                          {item.value} - {item.label}
+                          {item.value} - {labelOf("impact", item.value)}
                         </option>
                       ))}
                     </select>
@@ -531,12 +541,12 @@ function RiskForm({ risk, isNew }) {
               </div>
             </Card>
 
-            <Card title="Conséquences">
+            <Card title={t("risk.consequences")}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Coût ($)" htmlFor="field-cost" error={errors.cost} hint="Vide = non estimé. 0 = estimé à zéro.">
+                <Field label={t("risk.cost")} htmlFor="field-cost" error={error("cost")} hint={t("risk.costHint")}>
                   <input className="input" type="number" min="0" step="1000" inputMode="numeric" value={values.cost} onChange={(event) => set({ cost: event.target.value })} {...field("cost")} />
                 </Field>
-                <Field label="Délai (jours)" htmlFor="field-delay_days" error={errors.delay_days} hint="Nombre entier de jours, 0 ou plus.">
+                <Field label={t("risk.delay")} htmlFor="field-delay_days" error={error("delay_days")} hint={t("risk.delayHint")}>
                   <input
                     className="input"
                     type="number"
@@ -548,23 +558,23 @@ function RiskForm({ risk, isNew }) {
                     {...field("delay_days")}
                   />
                 </Field>
-                <Field label="Qualité" htmlFor="field-quality_impact">
+                <Field label={t("risk.quality")} htmlFor="field-quality_impact">
                   <textarea className="input" rows={2} value={values.quality_impact} onChange={(event) => set({ quality_impact: event.target.value })} {...field("quality_impact")} />
                 </Field>
-                <Field label="Santé et sécurité" htmlFor="field-hs_impact">
+                <Field label={t("risk.hs")} htmlFor="field-hs_impact">
                   <textarea className="input" rows={2} value={values.hs_impact} onChange={(event) => set({ hs_impact: event.target.value })} {...field("hs_impact")} />
                 </Field>
-                <Field label="Réputation" htmlFor="field-reputation_impact" className="sm:col-span-2">
+                <Field label={t("risk.reputation")} htmlFor="field-reputation_impact" className="sm:col-span-2">
                   <textarea className="input" rows={2} value={values.reputation_impact} onChange={(event) => set({ reputation_impact: event.target.value })} {...field("reputation_impact")} />
                 </Field>
               </div>
             </Card>
 
-            <Card title="Réponse">
+            <Card title={t("risk.response")}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Propriétaire" htmlFor="field-owner_id" required={strict} error={errors.owner_id}>
+                <Field label={t("common.owner")} htmlFor="field-owner_id" required={strict} error={error("owner_id")}>
                   <select className="input" value={values.owner_id} onChange={(event) => set({ owner_id: event.target.value })} {...field("owner_id")}>
-                    <option value="">Choisir…</option>
+                    <option value="">{t("common.choose")}</option>
                     {activePeople.map((person) => (
                       <option key={person.id} value={person.id}>
                         {person.full_name}
@@ -572,23 +582,24 @@ function RiskForm({ risk, isNew }) {
                     ))}
                   </select>
                 </Field>
-                <Field label="Stratégie de réponse" htmlFor="field-response_strategy" required={strict} error={errors.response_strategy}>
+                <Field label={t("risk.responseStrategy")} htmlFor="field-response_strategy" required={strict} error={error("response_strategy")}>
                   <div id="field-response_strategy">
-                    <Choice name="Stratégie de réponse" options={STRATEGIES} value={values.response_strategy} onChange={(response_strategy) => set({ response_strategy })} disabled={disabled} />
+                    <Choice
+                      name={t("risk.responseStrategy")}
+                      options={strategies}
+                      value={values.response_strategy}
+                      onChange={(response_strategy) => set({ response_strategy })}
+                      disabled={disabled}
+                    />
                   </div>
                 </Field>
-                <Field label="Détails de la stratégie" htmlFor="field-strategy_details" className="sm:col-span-2">
+                <Field label={t("risk.strategyDetails")} htmlFor="field-strategy_details" className="sm:col-span-2">
                   <textarea className="input" rows={4} value={values.strategy_details} onChange={(event) => set({ strategy_details: event.target.value })} {...field("strategy_details")} />
                 </Field>
                 {live.exec_flag && (
-                  <Field
-                    label="Répondant direction"
-                    htmlFor="field-exec_contact_id"
-                    className="sm:col-span-2"
-                    hint="Affiché parce que l'élément est signalé à la direction (impact 5, ou impact 3–4 avec une probabilité de 3 ou plus)."
-                  >
+                  <Field label={t("risk.execContact")} htmlFor="field-exec_contact_id" className="sm:col-span-2" hint={t("risk.execContactHint")}>
                     <select className="input" value={values.exec_contact_id} onChange={(event) => set({ exec_contact_id: event.target.value })} {...field("exec_contact_id")}>
-                      <option value="">Aucun</option>
+                      <option value="">{t("common.none")}</option>
                       {activePeople.map((person) => (
                         <option key={person.id} value={person.id}>
                           {person.full_name}
@@ -600,24 +611,28 @@ function RiskForm({ risk, isNew }) {
               </div>
             </Card>
 
-            <Card title="Suivi">
+            <Card title={t("risk.followUp")}>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Dernière révision" htmlFor="field-last_review" hint="Mise à jour automatiquement quand la cote change.">
+                <Field label={t("risk.lastReview")} htmlFor="field-last_review" hint={t("risk.lastReviewHint")}>
                   <input className="input" type="date" value={values.last_review} onChange={(event) => set({ last_review: event.target.value })} {...field("last_review")} />
                 </Field>
                 <Field
-                  label="Prochaine révision"
-                  hint={live.score ? `Aux ${live.score >= settings.weekly_review_min_score ? "7" : "30"} jours pour un score de ${live.score}.` : "Calculée dès que l'élément est coté."}
+                  label={t("common.nextReview")}
+                  hint={
+                    live.score
+                      ? t("risk.nextReviewHint", { days: live.score >= settings.weekly_review_min_score ? 7 : 30, score: live.score })
+                      : t("risk.nextReviewPending")
+                  }
                 >
                   <p className={`input flex items-center bg-[var(--surface-2)] ${live.review_overdue ? "font-semibold text-danger" : ""}`}>{formatDate(live.next_review)}</p>
                 </Field>
                 {values.status === "ferme" && (
                   <Field
-                    label="Date de fermeture"
+                    label={t("risk.closedDate")}
                     htmlFor="field-closed_date"
                     required={!legacyClosed}
-                    error={errors.closed_date}
-                    hint={legacyClosed && !values.closed_date ? "Fermé avant la mise à niveau : la date n'est pas exigée." : undefined}
+                    error={error("closed_date")}
+                    hint={legacyClosed && !values.closed_date ? t("risk.closedDateLegacy") : undefined}
                   >
                     <input className="input" type="date" value={values.closed_date} onChange={(event) => set({ closed_date: event.target.value })} {...field("closed_date")} />
                   </Field>
@@ -625,38 +640,38 @@ function RiskForm({ risk, isNew }) {
                 <div className="field sm:col-span-2">
                   <label className="check">
                     <input type="checkbox" checked={Boolean(values.committee_override)} onChange={(event) => set({ committee_override: event.target.checked })} disabled={disabled} />
-                    Ajouter au comité d'opération même si le niveau est inférieur à Élevé
+                    {t("risk.committee")}
                   </label>
-                  <p className="field-hint">Les éléments actifs Élevé et Critique y figurent automatiquement.</p>
+                  <p className="field-hint">{t("risk.committeeHint")}</p>
                 </div>
               </div>
             </Card>
 
             {hasHistory && (
-              <Card title="Historique SharePoint">
-                <p className="mb-3 text-xs text-muted">Valeurs reprises de l'ancienne liste, conservées en lecture seule.</p>
+              <Card title={t("risk.history")}>
+                <p className="mb-3 text-xs text-muted">{t("risk.historyNote")}</p>
                 <dl className="dl">
                   {risk.legacy_sp_id && (
                     <>
-                      <dt>ID SharePoint</dt>
+                      <dt>{t("risk.spId")}</dt>
                       <dd>{risk.legacy_sp_id}</dd>
                     </>
                   )}
                   {risk.legacy_type && (
                     <>
-                      <dt>Type</dt>
+                      <dt>{t("risk.type")}</dt>
                       <dd>{risk.legacy_type}</dd>
                     </>
                   )}
                   {risk.legacy_risk_index && (
                     <>
-                      <dt>Indice de risque</dt>
+                      <dt>{t("risk.riskIndex")}</dt>
                       <dd>{risk.legacy_risk_index}</dd>
                     </>
                   )}
                   {risk.legacy_created_at && (
                     <>
-                      <dt>Créé</dt>
+                      <dt>{t("risk.createdLabel")}</dt>
                       <dd>
                         {formatDateTime(risk.legacy_created_at)}
                         {risk.legacy_created_by && ` · ${risk.legacy_created_by}`}
@@ -665,7 +680,7 @@ function RiskForm({ risk, isNew }) {
                   )}
                   {risk.legacy_modified_at && (
                     <>
-                      <dt>Dernière modification</dt>
+                      <dt>{t("risk.modifiedLabel")}</dt>
                       <dd>
                         {formatDateTime(risk.legacy_modified_at)}
                         {risk.legacy_modified_by && ` · ${risk.legacy_modified_by}`}
@@ -674,14 +689,14 @@ function RiskForm({ risk, isNew }) {
                   )}
                   {risk.legacy_closed_record && (
                     <>
-                      <dt>Exception historique</dt>
-                      <dd>Fermé avant la mise à niveau</dd>
+                      <dt>{t("risk.legacyException")}</dt>
+                      <dd>{t("risk.legacyExceptionValue")}</dd>
                     </>
                   )}
                 </dl>
                 {risk.legacy_other_impacts && (
                   <div className="mt-4">
-                    <p className="eyebrow">Autres impacts</p>
+                    <p className="eyebrow">{t("risk.otherImpacts")}</p>
                     <p className="mt-1 whitespace-pre-line text-[13px] text-ink-2">{risk.legacy_other_impacts}</p>
                   </div>
                 )}
@@ -694,9 +709,9 @@ function RiskForm({ risk, isNew }) {
                   {serverError ? (
                     <span className="font-semibold text-danger">{serverError}</span>
                   ) : Object.keys(errors).length ? (
-                    <span className="font-semibold text-danger">Vérifiez les champs signalés.</span>
+                    <span className="font-semibold text-danger">{t("risk.checkFields")}</span>
                   ) : (
-                    <span className="text-muted">{isNew ? "Nouvel élément, pas encore enregistré." : "Modifications non enregistrées."}</span>
+                    <span className="text-muted">{isNew ? t("risk.unsavedNew") : t("risk.unsaved")}</span>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -712,10 +727,10 @@ function RiskForm({ risk, isNew }) {
                       }
                     }}
                   >
-                    Annuler
+                    {t("common.cancel")}
                   </button>
                   <button type="submit" className="btn btn-primary" disabled={save.isPending}>
-                    {save.isPending ? "Enregistrement…" : isNew ? "Créer l'élément" : "Enregistrer"}
+                    {save.isPending ? t("common.saving") : isNew ? t("risk.create") : t("common.save")}
                   </button>
                 </div>
               </div>
@@ -723,31 +738,31 @@ function RiskForm({ risk, isNew }) {
           </div>
 
           <aside className="grid gap-5 lg:sticky lg:top-5">
-            <Card title="Résumé">
+            <Card title={t("risk.summary")}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="eyebrow">Niveau</p>
-                  <p className="mt-1 text-[1.65rem] font-bold leading-none text-ink">{live.level ? LEVEL_BY_CODE[live.level].label : "Non évalué"}</p>
+                  <p className="eyebrow">{t("common.level")}</p>
+                  <p className="mt-1 text-[1.65rem] font-bold leading-none text-ink">{live.level ? labelOf("level", live.level) : t("common.notAssessed")}</p>
                 </div>
                 <div className="text-right">
-                  <p className="eyebrow">Score</p>
+                  <p className="eyebrow">{t("common.score")}</p>
                   <p className="mt-1 text-[1.65rem] font-bold leading-none tabular-nums text-ink">{live.score ?? "—"}</p>
                 </div>
               </div>
               {live.level && <div className="mt-3 h-1.5 rounded-full" style={{ background: `var(--lvl-${live.level})` }}></div>}
               <dl className="dl mt-4">
-                <dt>Signalement direction</dt>
-                <dd className={live.exec_flag ? "text-danger" : ""}>{live.exec_flag ? "Oui" : "Non"}</dd>
-                <dt>Comité d'opération</dt>
-                <dd>{live.in_committee ? "Oui" : "Non"}</dd>
-                <dt>Prochaine révision</dt>
+                <dt>{t("risk.flag")}</dt>
+                <dd className={live.exec_flag ? "text-danger" : ""}>{live.exec_flag ? t("common.yes") : t("common.no")}</dd>
+                <dt>{t("risk.inCommittee")}</dt>
+                <dd>{live.in_committee ? t("common.yes") : t("common.no")}</dd>
+                <dt>{t("common.nextReview")}</dt>
                 <dd className={live.review_overdue ? "text-danger" : ""}>{formatDate(live.next_review)}</dd>
-                <dt>Projet</dt>
+                <dt>{t("common.project")}</dt>
                 <dd className="truncate">{project ? project.number : "—"}</dd>
-                <dt>Coût estimé</dt>
-                <dd>{values.cost === "" ? "Non estimé" : formatMoney(values.cost)}</dd>
+                <dt>{t("risk.estimatedCost")}</dt>
+                <dd>{values.cost === "" ? t("risk.notEstimated") : formatMoney(values.cost)}</dd>
               </dl>
-              {ratingChanged && <p className="mt-3 text-xs text-muted">Aperçu : la cote sera enregistrée et la révision datée d'aujourd'hui.</p>}
+              {ratingChanged && <p className="mt-3 text-xs text-muted">{t("risk.preview")}</p>}
             </Card>
 
             {!isNew && <Attachments riskId={risk.id} canEdit={canEdit} canRemove={can.removeAttachments(role)} />}
@@ -760,6 +775,7 @@ function RiskForm({ risk, isNew }) {
 }
 
 export default function RiskPage() {
+  const { t } = useI18n()
   const { id } = useParams()
   const isNew = !id
   const { data: risk, isLoading, error } = useRisk(isNew ? null : id)
@@ -777,8 +793,16 @@ export default function RiskPage() {
   if (!isNew && !risk) {
     return (
       <Page>
-        <EmptyState icon="search" title="Élément introuvable" action={<Link to="/risques" className="btn btn-secondary">Retour au registre</Link>}>
-          {riskRef(id)} n'existe pas ou a été supprimé.
+        <EmptyState
+          icon="search"
+          title={t("risk.notFoundTitle")}
+          action={
+            <Link to="/risques" className="btn btn-secondary">
+              {t("risk.backToRegister")}
+            </Link>
+          }
+        >
+          {t("risk.notFoundText", { ref: riskRef(id) })}
         </EmptyState>
       </Page>
     )

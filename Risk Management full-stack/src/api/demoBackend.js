@@ -8,6 +8,7 @@
 import backupSeed from "virtual:demo-seed"
 import { CAUSES, derive, DEFAULT_SETTINGS, todayISO, validateRisk } from "../domain/rules.js"
 import sample from "../demo/sample.js"
+import { t } from "../i18n/index.js"
 import { can } from "../lib/roles.js"
 import { ApiError, toRecord } from "./shared.js"
 
@@ -110,7 +111,7 @@ function currentProfile() {
 
 function requireRole(check) {
   const profile = currentProfile()
-  if (!profile || !check(profile.role)) throw new ApiError("Action non permise pour votre rôle.")
+  if (!profile || !check(profile.role)) throw new ApiError(t("errors.forbidden"))
   return profile
 }
 
@@ -203,7 +204,7 @@ export const demoBackend = {
     const profile = requireRole(can.editRisks)
     const record = toRecord(values)
     const errors = validateRisk(record, { isNew: true, settings: state.settings })
-    if (Object.keys(errors).length) throw new ApiError(Object.values(errors)[0])
+    if (Object.keys(errors).length) throw new ApiError(t(Object.values(errors)[0]))
     const now = new Date().toISOString()
     const risk = {
       kind: "risque",
@@ -240,7 +241,7 @@ export const demoBackend = {
     await db()
     requireRole(can.editRisks)
     const risk = state.risks.find((item) => item.id === Number(id))
-    if (!risk) throw new ApiError("Élément introuvable.")
+    if (!risk) throw new ApiError(t("errors.notFound"))
     const before = { ...risk }
     const next = { ...risk, ...toRecord(values) }
 
@@ -250,7 +251,7 @@ export const demoBackend = {
     if (next.status === "actif") next.closed_date = null
 
     const errors = validateRisk(next, { settings: state.settings, legacyClosed: next.legacy_closed_record })
-    if (Object.keys(errors).length) throw new ApiError(Object.values(errors)[0])
+    if (Object.keys(errors).length) throw new ApiError(t(Object.values(errors)[0]))
 
     const rating = {}
     const other = {}
@@ -301,7 +302,7 @@ export const demoBackend = {
   async addNote(riskId, noteType, body) {
     await db()
     requireRole(can.editRisks)
-    if (!body.trim()) throw new ApiError("La note est vide.")
+    if (!body.trim()) throw new ApiError(t("errors.emptyNote"))
     logEvent(Number(riskId), "note", { note_type: noteType, body: body.trim() })
     save()
   },
@@ -332,7 +333,7 @@ export const demoBackend = {
 
   async attachmentUrl(attachment) {
     const url = files.get(attachment.id)
-    if (!url) throw new ApiError("En mode démo, les fichiers ne sont conservés que pendant la visite où ils ont été ajoutés.")
+    if (!url) throw new ApiError(t("errors.demoFile"))
     return url
   },
 
@@ -352,8 +353,8 @@ export const demoBackend = {
     await db()
     requireRole(can.manageDirectory)
     const number = project.number.trim()
-    if (!number) throw new ApiError("Le numéro de projet est obligatoire.")
-    if (state.projects.some((item) => item.number === number && item.id !== project.id)) throw new ApiError("Ce numéro de projet existe déjà.")
+    if (!number) throw new ApiError(t("errors.projectNumberRequired"))
+    if (state.projects.some((item) => item.number === number && item.id !== project.id)) throw new ApiError(t("errors.projectExists"))
     if (project.id) Object.assign(state.projects.find((item) => item.id === project.id), { number, name: project.name.trim(), active: project.active ?? true })
     else state.projects.push({ id: crypto.randomUUID(), number, name: project.name.trim(), active: true })
     save()
@@ -367,8 +368,8 @@ export const demoBackend = {
     await db()
     requireRole(can.manageDirectory)
     const full_name = person.full_name.trim()
-    if (!full_name) throw new ApiError("Le nom est obligatoire.")
-    if (state.people.some((item) => item.full_name.toLowerCase() === full_name.toLowerCase() && item.id !== person.id)) throw new ApiError("Cette personne existe déjà.")
+    if (!full_name) throw new ApiError(t("errors.nameRequired"))
+    if (state.people.some((item) => item.full_name.toLowerCase() === full_name.toLowerCase() && item.id !== person.id)) throw new ApiError(t("errors.personExists"))
     const record = { full_name, email: person.email?.trim() || null, active: person.active ?? true }
     if (person.id) Object.assign(state.people.find((item) => item.id === person.id), record)
     else state.people.push({ id: crypto.randomUUID(), profile_id: null, ...record })
@@ -404,7 +405,7 @@ export const demoBackend = {
   async setMemberAccess(id, role, active) {
     await db()
     const me = requireRole(can.manageTeam)
-    if (id === me.id && (role !== "admin" || !active)) throw new ApiError("Un administrateur ne peut pas retirer son propre accès.")
+    if (id === me.id && (role !== "admin" || !active)) throw new ApiError(t("errors.ownAccess"))
     Object.assign(state.profiles.find((profile) => profile.id === id), { role, active })
     save()
   },

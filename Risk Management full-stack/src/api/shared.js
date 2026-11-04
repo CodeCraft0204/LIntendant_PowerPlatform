@@ -1,4 +1,5 @@
 import { DB_ERRORS } from "../domain/rules.js"
+import { t } from "../i18n/index.js"
 
 // Columns a person edits; the database grants writes on these only.
 export const EDITABLE = [
@@ -49,14 +50,14 @@ export class ApiError extends Error {
   }
 }
 
-// Supabase / PostgREST errors to a readable French message.
+// Supabase / PostgREST errors to a readable message in the interface language.
 export function explain(error) {
   if (!error) return null
   const text = `${error.message ?? ""} ${error.hint ?? ""} ${error.details ?? ""}`
-  for (const [code, message] of Object.entries(DB_ERRORS)) if (text.includes(code)) return new ApiError(message, error)
+  for (const [code, key] of Object.entries(DB_ERRORS)) if (text.includes(code)) return new ApiError(t(key), error)
   if (error.code === "42501" || /row-level security|permission denied/i.test(text)) {
-    return new ApiError("Action non permise pour votre rôle.", error)
+    return new ApiError(t("errors.forbidden"), error)
   }
-  if (/Failed to fetch|NetworkError/i.test(text)) return new ApiError("Connexion au serveur impossible. Vérifiez votre réseau.", error)
-  return new ApiError(error.message || "Une erreur est survenue.", error)
+  if (/Failed to fetch|NetworkError/i.test(text)) return new ApiError(t("errors.network"), error)
+  return new ApiError(error.message || t("errors.generic"), error)
 }

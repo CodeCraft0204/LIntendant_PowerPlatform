@@ -10,6 +10,7 @@ import { StrictMode } from "react"
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest"
 import { api } from "./api/index.js"
 import App from "./App.jsx"
+import { setLang } from "./i18n/index.js"
 
 beforeAll(() => {
   // Like recent Chrome: scroll methods return a Promise. An effect that
@@ -19,6 +20,7 @@ beforeAll(() => {
 
 beforeEach(async () => {
   localStorage.clear()
+  setLang("fr")
   await api.reset()
 })
 
@@ -125,5 +127,32 @@ describe("demo mode", () => {
     window.history.pushState({}, "", "/administration")
     window.dispatchEvent(new PopStateEvent("popstate"))
     expect(await screen.findByText("Signalement direction (décision D2)")).toBeTruthy()
+  })
+
+  it("switches the whole interface between French and English, keeping unsaved edits", async () => {
+    await open("/risques/nouveau?projet=00000")
+    await screen.findByRole("heading", { name: "Nouveau risque ou enjeu" })
+    fireEvent.change(document.getElementById("field-title"), { target: { value: "Brouillon non enregistré" } })
+
+    const toggle = screen.getByRole("group", { name: "Langue de l'interface" })
+    fireEvent.click(within(toggle).getByRole("button", { name: "EN" }))
+
+    expect(await screen.findByRole("heading", { name: "New risk or issue" })).toBeTruthy()
+    expect(screen.getByText("Assessment")).toBeTruthy()
+    expect(screen.getByRole("button", { name: /^Probability 3 \(Moderate\) × impact 4 \(Major\) = 12, High$/ })).toBeTruthy()
+    expect(screen.getByRole("radio", { name: "Mitigate" })).toBeTruthy()
+    expect(screen.getByText("Dashboard")).toBeTruthy()
+    expect(document.documentElement.lang).toBe("en-CA")
+    // The form was re-rendered, not remounted: the draft is still there.
+    expect(document.getElementById("field-title").value).toBe("Brouillon non enregistré")
+
+    // A validation message appears in English too.
+    fireEvent.click(screen.getByRole("button", { name: "Create item" }))
+    expect(await screen.findByText("Check the highlighted fields.")).toBeTruthy()
+
+    fireEvent.click(within(screen.getByRole("group", { name: "Interface language" })).getByRole("button", { name: "FR" }))
+    expect(await screen.findByRole("heading", { name: "Nouveau risque ou enjeu" })).toBeTruthy()
+    expect(screen.getByText("Vérifiez les champs signalés.")).toBeTruthy()
+    expect(document.documentElement.lang).toBe("fr-CA")
   })
 })

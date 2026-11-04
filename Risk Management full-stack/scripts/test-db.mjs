@@ -8,7 +8,7 @@ import { PGlite } from "@electric-sql/pglite"
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { execFlagOf, levelOf, nextReviewOf, scoreOf, todayISO } from "../src/domain/rules.js"
+import { CAUSES, execFlagOf, levelOf, nextReviewOf, scoreOf, todayISO } from "../src/domain/rules.js"
 
 const root = fileURLToPath(new URL("..", import.meta.url))
 const db = new PGlite()
@@ -65,6 +65,15 @@ const dir = join(root, "supabase", "migrations")
 for (const file of readdirSync(dir).filter((name) => name.endsWith(".sql")).sort()) {
   await db.exec(readFileSync(join(dir, file), "utf8"))
   console.log(`applied ${file}`)
+}
+
+// The seeded cause descriptions must equal the built-in ones exactly: the
+// interface translates a description only while it is unchanged.
+{
+  const seeded = (await db.query("select code, description from public.reference_guides where scale = 'cause'")).rows
+  const different = CAUSES.filter((cause) => seeded.find((row) => row.code === cause.code)?.description !== cause.hint)
+  console.log("\nreference grid")
+  check("seeded cause descriptions match src/domain/rules.js", different.length === 0, different.map((cause) => cause.code).join(", "))
 }
 
 // --- Helpers --------------------------------------------------------------------

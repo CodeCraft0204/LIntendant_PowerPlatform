@@ -5,11 +5,11 @@ import { EventItem } from "../components/events.jsx"
 import Icon from "../components/Icon.jsx"
 import { LevelBadge, RiskMatrix } from "../components/risk.jsx"
 import { Alert, Card, Page, PageHeader, Skeleton, StatCard } from "../components/ui.jsx"
-import { LEVELS } from "../domain/rules.js"
+import { LEVELS, todayISO } from "../domain/rules.js"
+import { useI18n } from "../i18n/index.js"
 import { useAuth } from "../lib/auth.jsx"
 import { formatDate, formatInt, formatMoney } from "../lib/format.js"
 import { can } from "../lib/roles.js"
-import { todayISO } from "../domain/rules.js"
 
 const rank = { critique: 5, eleve: 4, moyen: 3, faible: 2, tres_faible: 1 }
 
@@ -60,6 +60,7 @@ function summarize(risks) {
 }
 
 export default function Dashboard() {
+  const { t } = useI18n()
   const { role } = useAuth()
   const { data: risks, isLoading, error } = useRisks()
   const { settings } = useSettings()
@@ -72,14 +73,14 @@ export default function Dashboard() {
   return (
     <>
       <PageHeader
-        eyebrow="Bureau de projet · Registre des risques et enjeux"
-        title="Tableau de bord"
-        subtitle={`Éléments actifs au ${formatDate(todayISO())}`}
+        eyebrow={t("dashboard.eyebrow")}
+        title={t("dashboard.title")}
+        subtitle={t("dashboard.subtitle", { date: formatDate(todayISO()) })}
         actions={
           can.editRisks(role) && (
             <Link to="/risques/nouveau" className="btn btn-primary">
               <Icon name="plus" />
-              Nouveau risque ou enjeu
+              {t("dashboard.newItem")}
             </Link>
           )
         }
@@ -91,15 +92,27 @@ export default function Dashboard() {
           {stats ? (
             <>
               <StatCard
-                label="Éléments actifs"
+                label={t("dashboard.active")}
                 value={formatInt(stats.active.length)}
-                sub={`${stats.enjeux} enjeu${stats.enjeux > 1 ? "x" : ""} · ${new Set(stats.active.map((risk) => risk.project_number)).size} projets`}
+                sub={t("dashboard.activeSub", { issues: stats.enjeux, projects: new Set(stats.active.map((risk) => risk.project_number)).size })}
                 to="/risques?vue=actifs"
               />
-              <StatCard label="Critiques et élevés" value={formatInt(stats.high)} sub={`${stats.committee} au comité d'opération`} to="/risques?vue=comite" tone={stats.high ? "danger" : undefined} />
-              <StatCard label="Signalement direction" value={formatInt(stats.flagged)} sub="Impact 5, ou 3–4 avec probabilité ≥ 3" to="/risques?vue=direction" />
-              <StatCard label="Révisions échues" value={formatInt(stats.overdue)} sub="Prochaine révision passée" to="/risques?vue=revision-echue" tone={stats.overdue ? "danger" : undefined} />
-              <StatCard label="À recoter" value={formatInt(stats.toRate)} sub={`${ratedShare} % des éléments actifs cotés`} to="/risques?vue=a-recoter">
+              <StatCard
+                label={t("dashboard.high")}
+                value={formatInt(stats.high)}
+                sub={t("dashboard.highSub", { count: stats.committee })}
+                to="/risques?vue=comite"
+                tone={stats.high ? "danger" : undefined}
+              />
+              <StatCard label={t("dashboard.flagged")} value={formatInt(stats.flagged)} sub={t("dashboard.flaggedSub")} to="/risques?vue=direction" />
+              <StatCard
+                label={t("dashboard.overdue")}
+                value={formatInt(stats.overdue)}
+                sub={t("dashboard.overdueSub")}
+                to="/risques?vue=revision-echue"
+                tone={stats.overdue ? "danger" : undefined}
+              />
+              <StatCard label={t("dashboard.toRate")} value={formatInt(stats.toRate)} sub={t("dashboard.toRateSub", { pct: ratedShare })} to="/risques?vue=a-recoter">
                 <div className="progress" aria-hidden="true">
                   <span style={{ width: `${ratedShare}%` }}></span>
                 </div>
@@ -119,11 +132,10 @@ export default function Dashboard() {
         {stats && stats.toRate > 0 && !settings.require_complete_active && (
           <div className="mt-4">
             <Alert tone="info">
-              <strong>Campagne de recotation en cours.</strong> {stats.toRate} élément{stats.toRate > 1 ? "s" : ""} actif{stats.toRate > 1 ? "s" : ""} repris de
-              SharePoint attend{stats.toRate > 1 ? "ent" : ""} une cote (risque/enjeu, cause, probabilité, impact, stratégie).{" "}
-              {stats.withoutOwner > 0 && `${stats.withoutOwner} n'ont pas de propriétaire. `}
+              <strong>{t("dashboard.campaignTitle")}</strong> {t("dashboard.campaignText", { count: stats.toRate })}{" "}
+              {stats.withoutOwner > 0 && `${t("dashboard.campaignOwners", { count: stats.withoutOwner })} `}
               <Link to="/risques?vue=a-recoter" className="link">
-                Ouvrir la vue À recoter
+                {t("dashboard.campaignLink")}
               </Link>
             </Alert>
           </div>
@@ -132,18 +144,15 @@ export default function Dashboard() {
         <div className="mt-5 grid gap-5 lg:grid-cols-5">
           <Card
             className="lg:col-span-3"
-            title="Matrice des éléments actifs"
-            actions={<span className="text-xs text-muted">{stats ? `${stats.rated.length} cotés` : ""}</span>}
+            title={t("dashboard.matrix")}
+            actions={<span className="text-xs text-muted">{stats ? t("dashboard.rated", { count: stats.rated.length }) : ""}</span>}
           >
             <RiskMatrix counts={stats?.matrix} cellHref={(probability, impact) => `/risques?vue=actifs&p=${probability}&i=${impact}`} />
-            <p className="mt-4 text-xs leading-relaxed text-muted">
-              Score = probabilité × impact. Révision aux 7 jours à partir d'un score de {settings.weekly_review_min_score}, aux 30 jours sinon. Cliquez une case
-              pour voir ses éléments.
-            </p>
+            <p className="mt-4 text-xs leading-relaxed text-muted">{t("dashboard.matrixNote", { threshold: settings.weekly_review_min_score })}</p>
           </Card>
 
           <div className="grid gap-5 lg:col-span-2">
-            <Card title="Répartition par niveau">
+            <Card title={t("dashboard.levels")}>
               <ul className="grid gap-2.5">
                 {(stats?.levels ?? LEVELS.map((level) => ({ ...level, count: 0 }))).map((level) => (
                   <li key={level.code} className="grid grid-cols-[6.5rem_minmax(0,1fr)_2rem] items-center gap-3">
@@ -163,18 +172,18 @@ export default function Dashboard() {
                 </li>
               </ul>
             </Card>
-            <StatCard label="Coût estimé des éléments actifs" value={stats ? formatMoney(stats.cost) : "…"} sub="Somme des coûts saisis (un coût vide n'est pas estimé)" />
+            <StatCard label={t("dashboard.cost")} value={stats ? formatMoney(stats.cost) : "…"} sub={t("dashboard.costSub")} />
           </div>
         </div>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-5">
           <Card
             className="lg:col-span-3"
-            title="Projets les plus exposés"
+            title={t("dashboard.exposed")}
             bodyClassName=""
             actions={
               <Link to="/projets" className="link text-xs">
-                Tous les projets
+                {t("dashboard.allProjects")}
               </Link>
             }
           >
@@ -189,12 +198,12 @@ export default function Dashboard() {
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>Projet</th>
-                      <th className="num">Actifs</th>
-                      <th className="num">Crit./élevés</th>
-                      <th className="num">Direction</th>
-                      <th>Niveau max.</th>
-                      <th className="num">Coût estimé</th>
+                      <th>{t("common.project")}</th>
+                      <th className="num">{t("dashboard.colActive")}</th>
+                      <th className="num">{t("dashboard.colHigh")}</th>
+                      <th className="num">{t("dashboard.colFlag")}</th>
+                      <th>{t("dashboard.colMax")}</th>
+                      <th className="num">{t("dashboard.colCost")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -219,7 +228,7 @@ export default function Dashboard() {
             )}
           </Card>
 
-          <Card className="lg:col-span-2" title="Activité récente">
+          <Card className="lg:col-span-2" title={t("dashboard.activity")}>
             {events?.length ? (
               <ul className="timeline">
                 {events.map((event) => (
@@ -227,7 +236,7 @@ export default function Dashboard() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted">Les créations, révisions de cote, fermetures et notes apparaîtront ici.</p>
+              <p className="text-sm text-muted">{t("dashboard.activityEmpty")}</p>
             )}
           </Card>
         </div>

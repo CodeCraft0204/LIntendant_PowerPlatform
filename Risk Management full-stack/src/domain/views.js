@@ -2,47 +2,21 @@
 // active, closed and everything. Each has a filter, a default sort and,
 // for the committee and management views, grouping by project.
 
+// Labels and hints: src/i18n, keys view.<id> and viewHint.<id>.
 export const VIEWS = [
-  { id: "actifs", label: "Actifs", filter: (risk) => risk.status === "actif", sort: { key: "score", dir: "desc" } },
-  {
-    id: "comite",
-    label: "Comité d'opération",
-    hint: "Éléments actifs Élevé ou Critique, et ceux cochés manuellement pour le comité.",
-    filter: (risk) => risk.in_committee,
-    sort: { key: "score", dir: "desc" },
-    group: true,
-  },
+  { id: "actifs", filter: (risk) => risk.status === "actif", sort: { key: "score", dir: "desc" } },
+  { id: "comite", hint: true, filter: (risk) => risk.in_committee, sort: { key: "score", dir: "desc" }, group: true },
   {
     id: "mes-risques",
-    label: "Mes risques actifs",
-    hint: "Éléments actifs dont vous êtes le propriétaire.",
+    hint: true,
     filter: (risk, context) => risk.status === "actif" && Boolean(context.profileId) && risk.owner_profile_id === context.profileId,
     sort: { key: "score", dir: "desc" },
   },
-  {
-    id: "revision-echue",
-    label: "Révision échue",
-    hint: "Éléments actifs dont la prochaine révision est aujourd'hui ou passée.",
-    filter: (risk) => risk.review_overdue,
-    sort: { key: "next_review", dir: "asc" },
-  },
-  {
-    id: "direction",
-    label: "Signalement direction",
-    hint: "Impact 5, ou impact 3 et plus avec une probabilité modérée ou plus.",
-    filter: (risk) => risk.status === "actif" && risk.exec_flag,
-    sort: { key: "score", dir: "desc" },
-    group: true,
-  },
-  {
-    id: "a-recoter",
-    label: "À recoter",
-    hint: "Éléments actifs sans probabilité ou impact. Vue de travail de la campagne de recotation.",
-    filter: (risk) => risk.needs_rating,
-    sort: { key: "project", dir: "asc" },
-  },
-  { id: "fermes", label: "Fermés", filter: (risk) => risk.status === "ferme", sort: { key: "closed", dir: "desc" } },
-  { id: "tous", label: "Tous", filter: () => true, sort: { key: "id", dir: "desc" } },
+  { id: "revision-echue", hint: true, filter: (risk) => risk.review_overdue, sort: { key: "next_review", dir: "asc" } },
+  { id: "direction", hint: true, filter: (risk) => risk.status === "actif" && risk.exec_flag, sort: { key: "score", dir: "desc" }, group: true },
+  { id: "a-recoter", hint: true, filter: (risk) => risk.needs_rating, sort: { key: "project", dir: "asc" } },
+  { id: "fermes", filter: (risk) => risk.status === "ferme", sort: { key: "closed", dir: "desc" } },
+  { id: "tous", filter: () => true, sort: { key: "id", dir: "desc" } },
 ]
 
 export const VIEW_BY_ID = Object.fromEntries(VIEWS.map((view) => [view.id, view]))

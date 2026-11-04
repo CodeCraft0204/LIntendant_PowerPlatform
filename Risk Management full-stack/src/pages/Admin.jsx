@@ -4,11 +4,13 @@ import { api, isDemo } from "../api/index.js"
 import { useMembers, usePeople, useProjects, useRisks, useSavePerson, useSaveProject, useSaveSettings, useSetMemberAccess, useSettings } from "../api/hooks.js"
 import Icon from "../components/Icon.jsx"
 import { Alert, Card, Field, Page, PageHeader, PageSpinner, toast } from "../components/ui.jsx"
+import { useI18n } from "../i18n/index.js"
 import { useAuth } from "../lib/auth.jsx"
 import { formatDate } from "../lib/format.js"
 import { can, ROLES } from "../lib/roles.js"
 
 function SettingsPanel() {
+  const { t } = useI18n()
   const { role } = useAuth()
   const { settings, isLoading } = useSettings()
   const { data: risks } = useRisks()
@@ -33,30 +35,30 @@ function SettingsPanel() {
         setError(null)
         try {
           await save.mutateAsync(draft)
-          toast("Paramètres enregistrés")
+          toast(t("admin.settingsSaved"))
         } catch (failure) {
           setError(failure.message)
         }
       }}
     >
-      {!editable && <Alert tone="info">Seules la direction et l'administration peuvent modifier ces paramètres.</Alert>}
+      {!editable && <Alert tone="info">{t("admin.settingsLocked")}</Alert>}
 
-      <Card title="Signalement direction (décision D2)">
-        <p className="mb-3 text-[13px] text-ink-2">Impact 5 : toujours signalé. Impact 3 : signalé si la probabilité est de 3 ou plus. Et l'impact 4 ?</p>
+      <Card title={t("admin.d2Title")}>
+        <p className="mb-3 text-[13px] text-ink-2">{t("admin.d2Text")}</p>
         <div className="grid gap-2">
           <label className="check">
             <input type="radio" name="impact4" checked={!draft.flag_impact4_always} onChange={() => setDraft({ ...draft, flag_impact4_always: false })} disabled={!editable} />
-            Comme l'impact 3 : signalé si la probabilité est de 3 ou plus
+            {t("admin.d2Like3")}
           </label>
           <label className="check">
             <input type="radio" name="impact4" checked={draft.flag_impact4_always} onChange={() => setDraft({ ...draft, flag_impact4_always: true })} disabled={!editable} />
-            Comme l'impact 5 : toujours signalé
+            {t("admin.d2Like5")}
           </label>
         </div>
       </Card>
 
-      <Card title="Fréquence de révision (décision D4)">
-        <Field label="Révision hebdomadaire à partir du score" htmlFor="weekly" hint="Sous ce score, la révision est mensuelle (30 jours).">
+      <Card title={t("admin.d4Title")}>
+        <Field label={t("admin.d4Label")} htmlFor="weekly" hint={t("admin.d4Hint")}>
           <select
             id="weekly"
             className="input max-w-xs"
@@ -64,14 +66,14 @@ function SettingsPanel() {
             onChange={(event) => setDraft({ ...draft, weekly_review_min_score: Number(event.target.value) })}
             disabled={!editable}
           >
-            <option value={8}>8 (le niveau Moyen au complet)</option>
-            <option value={9}>9 (le tableau d'acceptation du plan)</option>
-            <option value={12}>12 (Élevé et Critique seulement)</option>
+            <option value={8}>{t("admin.d4Option8")}</option>
+            <option value={9}>{t("admin.d4Option9")}</option>
+            <option value={12}>{t("admin.d4Option12")}</option>
           </select>
         </Field>
       </Card>
 
-      <Card title="Validation complète des éléments actifs">
+      <Card title={t("admin.strictTitle")}>
         <label className="check items-start">
           <input
             type="checkbox"
@@ -81,17 +83,15 @@ function SettingsPanel() {
             disabled={!editable}
           />
           <span>
-            Exiger une cote complète (risque/enjeu, cause, propriétaire, probabilité, impact, stratégie) pour enregistrer <strong>tout</strong> élément actif, y compris
-            ceux repris de SharePoint.
+            {t("admin.strictLabelBefore")}
+            <strong>{t("admin.strictLabelStrong")}</strong>
+            {t("admin.strictLabelAfter")}
           </span>
         </label>
-        <p className="mt-2 text-xs text-muted">Les nouveaux éléments sont toujours complets. À activer quand la vue À recoter est vide (l'« étape B » du plan).</p>
+        <p className="mt-2 text-xs text-muted">{t("admin.strictHint")}</p>
         {draft.require_complete_active && toRate > 0 && (
           <div className="mt-3">
-            <Alert tone="warn">
-              {toRate} élément{toRate > 1 ? "s" : ""} actif{toRate > 1 ? "s" : ""} n'{toRate > 1 ? "ont" : "a"} pas encore de cote. Une fois cette option activée, on ne
-              pourra plus les modifier sans les coter au complet.
-            </Alert>
+            <Alert tone="warn">{t("admin.strictWarn", { count: toRate })}</Alert>
           </div>
         )}
       </Card>
@@ -100,7 +100,7 @@ function SettingsPanel() {
       {editable && (
         <div className="flex justify-end">
           <button type="submit" className="btn btn-primary" disabled={!changed || save.isPending}>
-            Enregistrer les paramètres
+            {t("admin.saveSettings")}
           </button>
         </div>
       )}
@@ -109,6 +109,7 @@ function SettingsPanel() {
 }
 
 function TeamPanel() {
+  const { t } = useI18n()
   const { profile: me } = useAuth()
   const { data: members, isLoading } = useMembers()
   const setAccess = useSetMemberAccess()
@@ -120,7 +121,7 @@ function TeamPanel() {
     setError(null)
     try {
       await setAccess.mutateAsync({ id: member.id, role: changes.role ?? member.role, active: changes.active ?? member.active })
-      toast("Accès mis à jour")
+      toast(t("admin.accessUpdated"))
     } catch (failure) {
       setError(failure.message)
     }
@@ -128,21 +129,16 @@ function TeamPanel() {
 
   return (
     <div className="grid gap-4">
-      {!isDemo && (
-        <Alert tone="info">
-          Pour ajouter quelqu'un : invitez son courriel dans Supabase (<em>Authentication › Users › Invite user</em>) ou laissez-le se connecter avec son compte
-          Microsoft. Il apparaît ici sans rôle ; choisissez-en un pour lui ouvrir le registre.
-        </Alert>
-      )}
+      {!isDemo && <Alert tone="info">{t("admin.inviteHelp")}</Alert>}
       <Alert>{error}</Alert>
       <section className="card overflow-hidden">
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>Membre</th>
-                <th>Rôle</th>
-                <th>Accès</th>
+                <th>{t("admin.member")}</th>
+                <th>{t("admin.role")}</th>
+                <th>{t("admin.access")}</th>
               </tr>
             </thead>
             <tbody>
@@ -158,12 +154,12 @@ function TeamPanel() {
                       value={member.role ?? ""}
                       onChange={(event) => update(member, { role: event.target.value || null })}
                       disabled={member.id === me.id}
-                      aria-label={`Rôle de ${member.full_name || member.email}`}
+                      aria-label={t("admin.roleOf", { name: member.full_name || member.email })}
                     >
-                      <option value="">En attente (aucun rôle)</option>
-                      {Object.entries(ROLES).map(([code, item]) => (
+                      <option value="">{t("admin.pendingRole")}</option>
+                      {ROLES.map((code) => (
                         <option key={code} value={code}>
-                          {item.label}
+                          {t(`role.${code}`)}
                         </option>
                       ))}
                     </select>
@@ -171,7 +167,7 @@ function TeamPanel() {
                   <td>
                     <label className="check">
                       <input type="checkbox" checked={member.active} onChange={(event) => update(member, { active: event.target.checked })} disabled={member.id === me.id} />
-                      {member.active ? "Actif" : "Suspendu"}
+                      {member.active ? t("common.active") : t("common.paused")}
                     </label>
                   </td>
                 </tr>
@@ -180,12 +176,12 @@ function TeamPanel() {
           </table>
         </div>
       </section>
-      <Card title="Rôles">
+      <Card title={t("admin.roles")}>
         <dl className="grid gap-2 text-[13px] sm:grid-cols-[10rem_minmax(0,1fr)]">
-          {Object.values(ROLES).map((item) => (
-            <div key={item.label} className="contents">
-              <dt className="font-bold text-ink">{item.label}</dt>
-              <dd className="text-ink-2">{item.description}</dd>
+          {ROLES.map((code) => (
+            <div key={code} className="contents">
+              <dt className="font-bold text-ink">{t(`role.${code}`)}</dt>
+              <dd className="text-ink-2">{t(`roleDescription.${code}`)}</dd>
             </div>
           ))}
         </dl>
@@ -195,6 +191,7 @@ function TeamPanel() {
 }
 
 function DirectoryPanel({ kind }) {
+  const { t } = useI18n()
   const people = usePeople()
   const projects = useProjects()
   const { data: risks } = useRisks()
@@ -240,33 +237,40 @@ function DirectoryPanel({ kind }) {
         onSubmit={async (event) => {
           event.preventDefault()
           const ok = isPeople
-            ? await submit({ full_name: draft.a ?? "", email: draft.b ?? "" }, "Personne ajoutée")
-            : await submit({ number: draft.a ?? "", name: draft.b ?? "" }, "Projet ajouté")
+            ? await submit({ full_name: draft.a ?? "", email: draft.b ?? "" }, t("admin.personAdded"))
+            : await submit({ number: draft.a ?? "", name: draft.b ?? "" }, t("admin.projectAdded"))
           if (ok) setDraft({})
         }}
       >
-        <Field label={isPeople ? "Nom complet" : "Numéro"} htmlFor="new-a">
+        <Field label={isPeople ? t("admin.fullName") : t("admin.number")} htmlFor="new-a">
           <input id="new-a" className="input" value={draft.a ?? ""} onChange={(event) => setDraft({ ...draft, a: event.target.value })} required />
         </Field>
-        <Field label={isPeople ? "Courriel (lie la personne à son compte)" : "Nom du projet"} htmlFor="new-b">
+        <Field label={isPeople ? t("admin.emailLink") : t("admin.projectName")} htmlFor="new-b">
           <input id="new-b" className="input" type={isPeople ? "email" : "text"} value={draft.b ?? ""} onChange={(event) => setDraft({ ...draft, b: event.target.value })} />
         </Field>
         <button type="submit" className="btn btn-primary" disabled={save.isPending}>
           <Icon name="plus" />
-          Ajouter
+          {t("common.add")}
         </button>
       </form>
       <Alert>{error}</Alert>
-      <input className="input max-w-sm" type="search" placeholder="Filtrer…" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Filtrer" />
+      <input
+        className="input max-w-sm"
+        type="search"
+        placeholder={t("common.filterPlaceholder")}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        aria-label={t("common.filter")}
+      />
       <section className="card overflow-hidden">
         <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
-                <th>{isPeople ? "Personne" : "Projet"}</th>
-                <th>{isPeople ? "Compte" : "Nom"}</th>
-                <th className="num">Éléments actifs</th>
-                <th>Statut</th>
+                <th>{isPeople ? t("admin.person") : t("common.project")}</th>
+                <th>{isPeople ? t("admin.account") : t("admin.name")}</th>
+                <th className="num">{t("admin.activeItems")}</th>
+                <th>{t("common.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -276,9 +280,9 @@ function DirectoryPanel({ kind }) {
                   <td className="text-ink-2">
                     {isPeople ? (
                       row.profile_id ? (
-                        <span className="pill">Lié à un compte</span>
+                        <span className="pill">{t("admin.linked")}</span>
                       ) : (
-                        <span className="text-muted">{row.email || "Aucun compte"}</span>
+                        <span className="text-muted">{row.email || t("admin.noAccount")}</span>
                       )
                     ) : (
                       row.name
@@ -290,9 +294,9 @@ function DirectoryPanel({ kind }) {
                       <input
                         type="checkbox"
                         checked={row.active}
-                        onChange={(event) => submit({ ...row, active: event.target.checked }, event.target.checked ? "Réactivé" : "Archivé")}
+                        onChange={(event) => submit({ ...row, active: event.target.checked }, event.target.checked ? t("admin.reactivated") : t("admin.archivedToast"))}
                       />
-                      {row.active ? "Actif" : "Archivé"}
+                      {row.active ? t("common.active") : t("common.archived")}
                     </label>
                   </td>
                 </tr>
@@ -306,6 +310,7 @@ function DirectoryPanel({ kind }) {
 }
 
 function DataPanel() {
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const { data: risks } = useRisks()
   const [busy, setBusy] = useState(false)
@@ -317,47 +322,41 @@ function DataPanel() {
 
   return (
     <div className="grid max-w-3xl gap-5">
-      <Card title="Contenu du registre">
+      <Card title={t("admin.contents")}>
         <dl className="dl">
-          <dt>Éléments</dt>
+          <dt>{t("admin.items")}</dt>
           <dd>{counts.total}</dd>
-          <dt>Repris de SharePoint</dt>
+          <dt>{t("admin.imported")}</dt>
           <dd>{counts.legacy}</dd>
-          <dt>Avec ID SharePoint</dt>
+          <dt>{t("admin.withId")}</dt>
           <dd>{counts.withId}</dd>
         </dl>
       </Card>
       {isDemo ? (
-        <Card title="Mode démonstration">
+        <Card title={t("admin.demoTitle")}>
           <p className="text-[13px] leading-relaxed text-ink-2">
-            {api.info().fromBackup
-              ? `Données reprises de la sauvegarde SharePoint (préparées le ${formatDate(api.info().seedGeneratedAt)}), plus un projet exemple fictif.`
-              : "Données fictives d'exemple. Lancez « npm run demo:seed » pour charger la sauvegarde SharePoint."}{" "}
-            Les modifications restent dans ce navigateur.
+            {api.info().fromBackup ? t("admin.demoBackup", { date: formatDate(api.info().seedGeneratedAt) }) : t("admin.demoSample")} {t("admin.demoLocal")}
           </p>
           <button
             type="button"
             className="btn btn-danger mt-4"
             disabled={busy}
             onClick={async () => {
-              if (!window.confirm("Effacer toutes les modifications faites dans la démonstration ?")) return
+              if (!window.confirm(t("admin.demoConfirm"))) return
               setBusy(true)
               await api.reset()
               await queryClient.invalidateQueries()
               setBusy(false)
-              toast("Démonstration réinitialisée")
+              toast(t("admin.demoReset"))
             }}
           >
             <Icon name="refresh" />
-            Réinitialiser la démonstration
+            {t("admin.demoResetButton")}
           </button>
         </Card>
       ) : (
-        <Card title="Reprise des données SharePoint">
-          <p className="text-[13px] leading-relaxed text-ink-2">
-            La reprise se fait une fois, depuis un poste de confiance : <code>npm run import:legacy -- --apply</code> (voir le README). Elle est sans risque à relancer :
-            les éléments déjà repris sont ignorés.
-          </p>
+        <Card title={t("admin.importTitle")}>
+          <p className="text-[13px] leading-relaxed text-ink-2">{t("admin.importText")}</p>
         </Card>
       )}
     </div>
@@ -365,14 +364,15 @@ function DataPanel() {
 }
 
 const TABS = [
-  { id: "parametres", label: "Paramètres", allowed: () => true, render: () => <SettingsPanel /> },
-  { id: "equipe", label: "Équipe", allowed: can.manageTeam, render: () => <TeamPanel /> },
-  { id: "personnes", label: "Personnes", allowed: can.manageDirectory, render: () => <DirectoryPanel kind="people" /> },
-  { id: "projets", label: "Projets", allowed: can.manageDirectory, render: () => <DirectoryPanel kind="projects" /> },
-  { id: "donnees", label: "Données", allowed: () => true, render: () => <DataPanel /> },
+  { id: "parametres", allowed: () => true, render: () => <SettingsPanel /> },
+  { id: "equipe", allowed: can.manageTeam, render: () => <TeamPanel /> },
+  { id: "personnes", allowed: can.manageDirectory, render: () => <DirectoryPanel kind="people" /> },
+  { id: "projets", allowed: can.manageDirectory, render: () => <DirectoryPanel kind="projects" /> },
+  { id: "donnees", allowed: () => true, render: () => <DataPanel /> },
 ]
 
 export default function Admin() {
+  const { t } = useI18n()
   const { role } = useAuth()
   const tabs = TABS.filter((tab) => tab.allowed(role))
   const [tab, setTab] = useState(tabs[0].id)
@@ -380,12 +380,12 @@ export default function Admin() {
 
   return (
     <>
-      <PageHeader eyebrow="Administration" title="Administration" subtitle="Décisions de cotation, accès de l'équipe, personnes, projets et données." />
+      <PageHeader eyebrow={t("admin.title")} title={t("admin.title")} subtitle={t("admin.subtitle")} />
       <Page>
-        <div className="segmented mb-5" role="tablist" aria-label="Sections">
+        <div className="segmented mb-5" role="tablist" aria-label={t("nav.sections")}>
           {tabs.map((item) => (
             <button key={item.id} type="button" role="tab" aria-selected={item.id === current.id} onClick={() => setTab(item.id)}>
-              {item.label}
+              {t(`admin.tabs.${item.id}`)}
             </button>
           ))}
         </div>

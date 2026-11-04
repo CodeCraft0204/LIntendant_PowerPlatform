@@ -1,41 +1,45 @@
 import Papa from "papaparse"
-import { CAUSES, IMPACTS, KINDS, LEVEL_BY_CODE, PROBABILITIES, STATUSES, STRATEGIES, labelOf } from "../domain/rules.js"
+import { labelOf, t } from "../i18n/index.js"
 import { riskRef } from "./format.js"
 
-// The register as a spreadsheet (UTF-8 with BOM so Excel shows accents).
-export function exportRisks(rows, fileName = "risques-et-enjeux.csv") {
+const rating = (group, value) => (value ? `${value} - ${labelOf(group, value)}` : "")
+const yesNo = (value) => (value ? t("common.yes") : t("common.no"))
+
+// The register as a spreadsheet, with headers and labels in the interface
+// language (UTF-8 with BOM so Excel shows accents).
+export function exportRisks(rows, viewId) {
   const data = rows.map((risk) => ({
-    Réf: riskRef(risk.id),
-    "ID SharePoint": risk.legacy_sp_id ?? "",
-    Projet: risk.project_number,
-    "Nom du projet": risk.project_name,
-    Titre: risk.title,
-    "Risque ou enjeu": labelOf(KINDS, risk.kind),
-    Cause: labelOf(CAUSES, risk.cause),
-    Statut: labelOf(STATUSES, risk.status),
-    Probabilité: risk.probability ? `${risk.probability} - ${labelOf(PROBABILITIES, risk.probability)}` : "",
-    Impact: risk.impact ? `${risk.impact} - ${labelOf(IMPACTS, risk.impact)}` : "",
-    Score: risk.score ?? "",
-    Niveau: risk.level ? LEVEL_BY_CODE[risk.level].label : "",
-    "Signalement direction": risk.exec_flag ? "Oui" : "Non",
-    "Coût ($)": risk.cost ?? "",
-    "Délai (jours)": risk.delay_days ?? "",
-    Propriétaire: risk.owner_name ?? "",
-    "Stratégie de réponse": labelOf(STRATEGIES, risk.response_strategy),
-    "Détails de la stratégie": risk.strategy_details,
-    "Répondant direction": risk.exec_contact_name ?? "",
-    "Dernière révision": risk.last_review ?? "",
-    "Prochaine révision": risk.next_review ?? "",
-    "Date de fermeture": risk.closed_date ?? "",
-    "Comité (manuel)": risk.committee_override ? "Oui" : "Non",
-    "Type (historique)": risk.legacy_type ?? "",
-    "Indice de risque (historique)": risk.legacy_risk_index ?? "",
+    [t("csv.ref")]: riskRef(risk.id),
+    [t("csv.spId")]: risk.legacy_sp_id ?? "",
+    [t("csv.project")]: risk.project_number,
+    [t("csv.projectName")]: risk.project_name,
+    [t("csv.title")]: risk.title,
+    [t("csv.kind")]: labelOf("kind", risk.kind),
+    [t("csv.cause")]: labelOf("cause", risk.cause),
+    [t("csv.status")]: labelOf("status", risk.status),
+    [t("csv.probability")]: rating("probability", risk.probability),
+    [t("csv.impact")]: rating("impact", risk.impact),
+    [t("csv.score")]: risk.score ?? "",
+    [t("csv.level")]: labelOf("level", risk.level),
+    [t("csv.flag")]: yesNo(risk.exec_flag),
+    [t("csv.cost")]: risk.cost ?? "",
+    [t("csv.delay")]: risk.delay_days ?? "",
+    [t("csv.owner")]: risk.owner_name ?? "",
+    [t("csv.strategy")]: labelOf("strategy", risk.response_strategy),
+    [t("csv.strategyDetails")]: risk.strategy_details,
+    [t("csv.execContact")]: risk.exec_contact_name ?? "",
+    [t("csv.lastReview")]: risk.last_review ?? "",
+    [t("csv.nextReview")]: risk.next_review ?? "",
+    [t("csv.closedDate")]: risk.closed_date ?? "",
+    [t("csv.committee")]: yesNo(risk.committee_override),
+    [t("csv.legacyType")]: risk.legacy_type ?? "",
+    [t("csv.legacyIndex")]: risk.legacy_risk_index ?? "",
   }))
   const blob = new Blob(["﻿" + Papa.unparse(data)], { type: "text/csv;charset=utf-8" })
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
   link.href = url
-  link.download = fileName
+  link.download = `${t("register.fileName")}-${viewId}.csv`
   link.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

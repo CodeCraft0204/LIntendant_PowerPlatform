@@ -1,4 +1,5 @@
 import wordmark from "../assets/brand/lintendant-wordmark.png"
+import { useI18n } from "../i18n/index.js"
 
 // The L' mark, redrawn from the brand file (4.png) so it stays sharp at any
 // size. The navy square, white stem and slate base match the official colors
@@ -21,7 +22,9 @@ export function LogoWordmark({ className = "h-8 w-auto" }) {
 }
 
 // Mark plus the product name, as in the ERP sidebar.
-export function LogoLockup({ subtitle = "Risques et enjeux", collapsed = false }) {
+export function LogoLockup({ collapsed = false }) {
+  const { t } = useI18n()
+  const subtitle = t("app.subtitle")
   return (
     <span className="flex min-w-0 items-center gap-3">
       <LogoMark className="size-9 shrink-0 rounded-[3px] ring-1 ring-white/15" />

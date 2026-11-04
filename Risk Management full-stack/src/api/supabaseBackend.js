@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase.js"
+import { t } from "../i18n/index.js"
 import { explain, toRecord } from "./shared.js"
 
 const run = async (promise) => {
@@ -33,7 +34,7 @@ export const supabaseBackend = {
     },
     async signInWithPassword(email, password) {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw explain(error.message === "Invalid login credentials" ? { message: "Courriel ou mot de passe invalide." } : error)
+      if (error) throw explain(error.message === "Invalid login credentials" ? { message: t("errors.invalidLogin") } : error)
     },
     async signInWithLink(email) {
       const { error } = await supabase.auth.signInWithOtp({

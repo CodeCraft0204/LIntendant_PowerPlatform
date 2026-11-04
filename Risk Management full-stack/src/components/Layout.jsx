@@ -4,7 +4,8 @@ import { isDemo } from "../api/index.js"
 import { useRisks } from "../api/hooks.js"
 import { useAuth } from "../lib/auth.jsx"
 import { initials } from "../lib/format.js"
-import { canOpen, ROLES, SECTIONS } from "../lib/roles.js"
+import { useI18n } from "../i18n/index.js"
+import { canOpen, SECTIONS } from "../lib/roles.js"
 import useTheme from "../lib/useTheme.js"
 import Icon from "./Icon.jsx"
 import { LogoLockup, LogoMark } from "./Logo.jsx"
@@ -25,6 +26,7 @@ const readCollapsed = () => {
 export default function Layout() {
   const { profile, role, signOut } = useAuth()
   const { theme, toggle } = useTheme()
+  const { t } = useI18n()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(readCollapsed)
@@ -56,35 +58,35 @@ export default function Layout() {
 
   return (
     <div className={`shell ${collapsed ? "is-collapsed" : ""}`.trim()}>
-      <aside id="menu" className={`sidebar ${menuOpen ? "is-open" : ""}`.trim()} aria-label="Navigation principale">
+      <aside id="menu" className={`sidebar ${menuOpen ? "is-open" : ""}`.trim()} aria-label={t("nav.main")}>
         <div className="sidebar-head">
-          <Link to="/" className="min-w-0" aria-label="Tableau de bord">
+          <Link to="/" className="min-w-0" aria-label={t("section./")}>
             <LogoLockup collapsed={collapsed} />
           </Link>
           <button
             type="button"
             className="sidebar-icon-btn hidden lg:grid"
             onClick={toggleCollapsed}
-            aria-label={collapsed ? "Déplier le menu" : "Replier le menu"}
-            title={collapsed ? "Déplier le menu" : "Replier le menu"}
+            aria-label={collapsed ? t("nav.expand") : t("nav.collapse")}
+            title={collapsed ? t("nav.expand") : t("nav.collapse")}
           >
             <Icon name="panel_left" className="size-[18px]" />
           </button>
         </div>
 
-        <nav className="sidebar-nav" aria-label="Sections">
+        <nav className="sidebar-nav" aria-label={t("nav.sections")}>
           {SECTIONS.filter((section) => canOpen(section, role)).map((section) => (
             <NavLink
               key={section.path}
               to={section.path}
               end={section.path === "/"}
               className="nav-link"
-              title={collapsed ? section.label : undefined}
+              title={collapsed ? t(`section.${section.path}`) : undefined}
             >
               <Icon name={section.icon} />
-              {!collapsed && <span className="truncate">{section.label}</span>}
+              {!collapsed && <span className="truncate">{t(`section.${section.path}`)}</span>}
               {!collapsed && section.path === "/risques" && toRate > 0 && (
-                <span className="nav-count" title={`${toRate} élément(s) à recoter`}>
+                <span className="nav-count" title={t("nav.toRate", { count: toRate })}>
                   {toRate}
                 </span>
               )}
@@ -94,7 +96,7 @@ export default function Layout() {
 
         {isDemo && !collapsed && (
           <div className="mx-4 rounded-md border border-white/15 bg-white/5 px-3 py-2.5 text-[11px] leading-relaxed text-[#c9d5df]">
-            <span className="font-bold text-white">Mode démonstration.</span> Les données restent dans ce navigateur.
+            <span className="font-bold text-white">{t("nav.demoTitle")}</span> {t("nav.demoText")}
           </div>
         )}
 
@@ -105,7 +107,7 @@ export default function Layout() {
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{name}</p>
-              <p className="truncate text-xs text-[var(--sidebar-muted)]">{ROLES[role].label}</p>
+              <p className="truncate text-xs text-[var(--sidebar-muted)]">{t(`role.${role}`)}</p>
             </div>
           )}
           <div className={collapsed ? "grid gap-1" : "flex gap-0.5"}>
@@ -113,12 +115,12 @@ export default function Layout() {
               type="button"
               className="sidebar-icon-btn"
               onClick={toggle}
-              aria-label={theme === "dark" ? "Thème clair" : "Thème sombre"}
-              title={theme === "dark" ? "Thème clair" : "Thème sombre"}
+              aria-label={theme === "dark" ? t("nav.lightTheme") : t("nav.darkTheme")}
+              title={theme === "dark" ? t("nav.lightTheme") : t("nav.darkTheme")}
             >
               <Icon name={theme === "dark" ? "sun" : "moon"} className="size-4" />
             </button>
-            <button type="button" className="sidebar-icon-btn" onClick={signOut} aria-label="Se déconnecter" title="Se déconnecter">
+            <button type="button" className="sidebar-icon-btn" onClick={signOut} aria-label={t("common.signOut")} title={t("common.signOut")}>
               <Icon name="log_out" className="size-4" />
             </button>
           </div>
@@ -135,12 +137,12 @@ export default function Layout() {
             onClick={() => setMenuOpen((open) => !open)}
             aria-expanded={menuOpen}
             aria-controls="menu"
-            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-label={menuOpen ? t("nav.close") : t("nav.open")}
           >
             <Icon name={menuOpen ? "close" : "menu"} className="size-5" />
           </button>
           <LogoMark className="size-7 rounded-[2px] ring-1 ring-white/15" />
-          <span className="text-sm font-bold">Risques et enjeux</span>
+          <span className="text-sm font-bold">{t("app.subtitle")}</span>
         </div>
         <main>
           <Outlet />

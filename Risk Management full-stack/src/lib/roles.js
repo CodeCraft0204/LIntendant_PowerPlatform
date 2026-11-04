@@ -1,20 +1,17 @@
-export const ROLES = {
-  admin: { label: "Administrateur", description: "Tout, y compris l'accès de l'équipe" },
-  direction: { label: "Direction", description: "Risques, projets, personnes, grille de référence et paramètres" },
-  gestion: { label: "Chargé de projet", description: "Crée et met à jour les risques, ajoute notes et fichiers" },
-  lecteur: { label: "Lecteur", description: "Consultation seulement" },
-}
+// Roles and sections; their labels are in src/i18n (role.*, roleDescription.*,
+// section.*).
+export const ROLES = ["admin", "direction", "gestion", "lecteur"]
 
-const EVERYONE = Object.keys(ROLES)
+const EVERYONE = ROLES
 
 // Sidebar sections and who can open them. Mirrors the RLS policies in
 // supabase/migrations, which are what actually protect the data.
 export const SECTIONS = [
-  { path: "/", label: "Tableau de bord", icon: "dashboard", roles: EVERYONE },
-  { path: "/risques", label: "Risques et enjeux", icon: "alert_triangle", roles: EVERYONE },
-  { path: "/projets", label: "Projets", icon: "building", roles: EVERYONE },
-  { path: "/reference", label: "Grille de référence", icon: "book_open", roles: EVERYONE },
-  { path: "/administration", label: "Administration", icon: "settings", roles: ["admin", "direction"] },
+  { path: "/", icon: "dashboard", roles: EVERYONE },
+  { path: "/risques", icon: "alert_triangle", roles: EVERYONE },
+  { path: "/projets", icon: "building", roles: EVERYONE },
+  { path: "/reference", icon: "book_open", roles: EVERYONE },
+  { path: "/administration", icon: "settings", roles: ["admin", "direction"] },
 ]
 
 export const canOpen = (section, role) => section.roles.includes(role)

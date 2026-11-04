@@ -1,11 +1,13 @@
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { Link } from "react-router"
+import { t, useI18n } from "../i18n/index.js"
 import Icon from "./Icon.jsx"
 import { LogoMark, LogoWordmark } from "./Logo.jsx"
 
 // Page title band, as in the ERP: small uppercase context line, bold title,
 // muted description, status and "Retour" on the right.
 export function PageHeader({ eyebrow, title, subtitle, actions, back }) {
+  useI18n()
   return (
     <div className="page-band">
       <div className="page-inner page-header">
@@ -20,7 +22,7 @@ export function PageHeader({ eyebrow, title, subtitle, actions, back }) {
             {back && (
               <Link to={back.to} className="back-link">
                 <Icon name="arrow_left" className="size-3.5" />
-                {back.label ?? "Retour"}
+                {back.label ?? t("common.back")}
               </Link>
             )}
           </div>
@@ -117,21 +119,23 @@ export function EmptyState({ icon = "info", title, children, action }) {
   )
 }
 
-export function FullScreenLoader({ label = "Chargement du registre" }) {
+export function FullScreenLoader({ label }) {
+  useI18n()
   return (
     <div className="grid min-h-svh place-items-center" role="status" aria-live="polite">
       <div className="flex flex-col items-center gap-4">
         <LogoMark className="size-11 rounded-[3px]" />
         <span className="spinner" aria-hidden="true"></span>
-        <span className="text-sm text-muted">{label}…</span>
+        <span className="text-sm text-muted">{label ?? t("loader.register")}…</span>
       </div>
     </div>
   )
 }
 
 export function PageSpinner() {
+  useI18n()
   return (
-    <div className="grid min-h-[50vh] place-items-center" role="status" aria-label="Chargement">
+    <div className="grid min-h-[50vh] place-items-center" role="status" aria-label={t("loader.page")}>
       <span className="spinner"></span>
     </div>
   )
@@ -144,16 +148,15 @@ export function Skeleton({ className = "h-4 w-full" }) {
 // Sign-in and access screens: navy brand panel on the left (hidden on small
 // screens), the form on the right.
 export function AuthScreen({ title, description, children, footer, icon }) {
+  useI18n()
   return (
     <main className="grid min-h-svh lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
       <aside className="relative hidden overflow-hidden bg-[#003865] p-12 text-white lg:flex lg:flex-col" aria-hidden="true">
         <LogoWordmark className="h-[44px] w-auto self-start" />
         <div className="mt-auto max-w-md">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a7b7c5]">Bureau de projet</p>
-          <p className="mt-3 text-[28px] font-bold leading-snug">Registre des risques et enjeux</p>
-          <p className="mt-3 text-[15px] leading-relaxed text-[#c9d5df]">
-            Évaluer chaque risque de la même façon, voir d'un coup d'œil ce qui doit monter au comité, et garder l'historique de chaque décision.
-          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a7b7c5]">{t("auth.panelEyebrow")}</p>
+          <p className="mt-3 text-[28px] font-bold leading-snug">{t("auth.panelTitle")}</p>
+          <p className="mt-3 text-[15px] leading-relaxed text-[#c9d5df]">{t("auth.panelText")}</p>
         </div>
         <svg viewBox="75 75 1350 1350" className="pointer-events-none absolute -right-24 -bottom-24 size-[26rem] opacity-[0.12]">
           <polygon points="462,338 660,338 660,944 462,1142" fill="#FFFFFF" />
@@ -175,7 +178,9 @@ export function AuthScreen({ title, description, children, footer, icon }) {
           <div className="mt-7">{children}</div>
           {footer && <div className="mt-8 border-t border-line pt-6 text-center text-sm text-muted">{footer}</div>}
         </div>
-        <p className="mt-10 text-center text-xs text-muted">© {new Date().getFullYear()} L'Intendant · Bureau de projet</p>
+        <p className="mt-10 text-center text-xs text-muted">
+          © {new Date().getFullYear()} L'Intendant · {t("auth.legal")}
+        </p>
       </section>
     </main>
   )

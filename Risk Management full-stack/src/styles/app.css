@@ -1010,6 +1010,54 @@
     animation: rise 0.25s var(--ease-soft);
   }
 
+  /* FR / EN switch, pinned to the top-right corner of every page. On small
+     screens it sits on the right of the navy top bar. To move it to the
+     bottom-right corner, swap `top` for `bottom` here (and raise .toast). */
+  .lang-toggle {
+    position: fixed;
+    top: 0.75rem;
+    right: 0.9rem;
+    z-index: 50;
+    display: inline-flex;
+    gap: 0.1rem;
+    padding: 0.18rem;
+    border: 1px solid var(--line);
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 2px 10px -4px rgba(16, 36, 56, 0.35);
+    backdrop-filter: blur(8px);
+  }
+
+  .lang-toggle button {
+    min-width: 2.15rem;
+    padding: 0.22rem 0.55rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+
+  .lang-toggle button:hover {
+    color: var(--ink);
+  }
+
+  .lang-toggle button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  @media (max-width: 1023px) {
+    .lang-toggle {
+      top: 0.55rem;
+      right: 0.75rem;
+    }
+  }
+
   .save-bar {
     position: sticky;
     bottom: 0;

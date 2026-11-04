@@ -38,6 +38,15 @@ npm run dev           # http://localhost:5180
 | `/reference` | Reference grid. Management edits the probability, impact and cause descriptions here, and the form shows them |
 | `/administration` | Settings (D2, D4, strict validation), team and roles, people, projects, data |
 
+## Languages
+
+The interface is in Canadian French by default. The **FR / EN** switch in the top-right corner of every page, the sign-in screen included, changes it to English in place, without a reload, and open forms keep their unsaved edits. The choice is remembered in the browser.
+
+- **Strings** are in [src/i18n/fr.js](src/i18n/fr.js) and [src/i18n/en.js](src/i18n/en.js). Both files have the same keys, which `npm test` checks. Use `t("key", { params })` in code. A plural is a function in the dictionary.
+- **Dates and money** follow the language: `fr-CA` gives "15 déc. 2026, 17 400 000 $" and `en-CA` gives "Dec 15, 2026, $17,400,000".
+- **What people type** stays as written in both languages: titles, notes, and the reference-grid descriptions management writes. The one exception is the cause descriptions: while management hasn't changed Simon's original definitions, English shows their built-in translation.
+- **The switch's position** is the `.lang-toggle` rule in [src/styles/app.css](src/styles/app.css).
+
 ## Roles
 
 | Role | Can |
@@ -55,6 +64,7 @@ The roles are enforced by row level security ([supabase/migrations](supabase/mig
 src/
   domain/rules.js        assessment rules: score, level, flag, next review, validation (tested)
   domain/views.js        the register's saved views and sorting
+  i18n/                  FR / EN dictionaries and the t() translator
   api/                   one interface, two backends: supabaseBackend.js and demoBackend.js
   pages/                 Dashboard, Register, RiskPage, Projects, ProjectPage, Reference, Admin, Login
   components/            Layout (navy sidebar), ui, risk (matrix, table, badges), events (journal)
