@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:db": "node scripts/test-db.mjs",
     "demo:seed": "node scripts/build-demo-seed.mjs",
-    "import:legacy": "node scripts/import-legacy.mjs"
+    "import:legacy": "node scripts/import-legacy.mjs",
+    "import:apply": "node scripts/import-legacy.mjs --apply",
+    "import:attachments": "node scripts/attachments-mapping.mjs && node scripts/import-legacy.mjs --apply --attachments attachments-map.csv"
   },
   "dependencies": {
     "@fontsource-variable/montserrat": "^5.3.0",

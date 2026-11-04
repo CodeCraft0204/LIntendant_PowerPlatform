@@ -9,6 +9,7 @@ import backupSeed from "virtual:demo-seed"
 import { CAUSES, derive, DEFAULT_SETTINGS, todayISO, validateRisk } from "../domain/rules.js"
 import sample from "../demo/sample.js"
 import { t } from "../i18n/index.js"
+import { saveBlob } from "../lib/files.js"
 import { can } from "../lib/roles.js"
 import { ApiError, toRecord } from "./shared.js"
 
@@ -335,6 +336,12 @@ export const demoBackend = {
     const url = files.get(attachment.id)
     if (!url) throw new ApiError(t("errors.demoFile"))
     return url
+  },
+
+  async downloadAttachment(attachment) {
+    const url = files.get(attachment.id)
+    if (!url) throw new ApiError(t("errors.demoFile"))
+    saveBlob(await (await fetch(url)).blob(), attachment.file_name)
   },
 
   async deleteAttachment(attachment) {

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router"
 import { IMPACTS, levelOf, PROBABILITIES } from "../domain/rules.js"
 import { sortRisks } from "../domain/views.js"
 import { useI18n } from "../i18n/index.js"
-import { formatDate, riskRef } from "../lib/format.js"
+import { formatDate, formatMoney, riskRef } from "../lib/format.js"
 import Icon from "./Icon.jsx"
 
 export function LevelBadge({ level, score, empty }) {
@@ -196,6 +196,10 @@ export function RiskTable({ rows, sort, onSort, group = false, hideProject = fal
             </span>
           )}
           {risk.committee_override && risk.status === "actif" && <span className="tag">{t("table.committeeManual")}</span>}
+          {/* SharePoint values, so the register reads like the old list while items are re-rated */}
+          {!risk.cause && risk.legacy_type && <span className="tag tag-legacy">{t("table.legacyType", { type: risk.legacy_type })}</span>}
+          {Number(risk.cost) > 0 && <span className="tag tag-legacy">{formatMoney(risk.cost)}</span>}
+          {Number(risk.delay_days) > 0 && <span className="tag tag-legacy">{t("table.delay", { days: risk.delay_days })}</span>}
           {risk.attachment_count > 0 && (
             <span className="tag" title={t("table.attachments", { count: risk.attachment_count })}>
               <Icon name="paperclip" className="mr-0.5 size-3" />
@@ -206,6 +210,9 @@ export function RiskTable({ rows, sort, onSort, group = false, hideProject = fal
       </td>
       <td>
         <LevelBadge level={risk.level} score={risk.score} />
+        {!risk.level && risk.legacy_risk_index && (
+          <span className="mt-1 block whitespace-nowrap text-[11px] text-muted">{t("table.legacyIndex", { index: risk.legacy_risk_index })}</span>
+        )}
       </td>
       <td className="whitespace-nowrap">{risk.owner_name ?? <span className="text-danger">{t("common.noOwner")}</span>}</td>
       <td className="whitespace-nowrap">{labelOf("strategy", risk.response_strategy) || <span className="text-muted">—</span>}</td>

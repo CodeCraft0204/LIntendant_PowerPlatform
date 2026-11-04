@@ -24,12 +24,16 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { basename, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import Papa from "papaparse"
+import { contentTypeOf, storageSafeName } from "../src/lib/files.js"
 import { loadLegacy, printReport, readCsv } from "./lib/legacy.mjs"
 import { defaultSources } from "./lib/sources.mjs"
 
 const root = fileURLToPath(new URL("..", import.meta.url))
 const args = process.argv.slice(2)
-const flag = (name) => args.includes(`--${name}`)
+// Windows PowerShell drops the "--" in `npm run import:legacy -- --apply`, so
+// npm keeps the flag for itself (npm_config_apply=true) instead of passing it
+// on. Both forms are accepted.
+const flag = (name) => args.includes(`--${name}`) || process.env[`npm_config_${name.replace(/-/g, "_")}`] === "true"
 const option = (name) => {
   const index = args.indexOf(`--${name}`)
   return index >= 0 ? args[index + 1] : undefined
@@ -186,16 +190,17 @@ if (mapFile) {
     const fileName = basename(row.file)
     if (existing.has(`${risk.id}|${fileName}`)) continue
 
-    const path = `${risk.id}/${randomUUID()}-${fileName.replace(/[^\w.\- ()À-ÿ]/g, "_")}`
+    const path = `${risk.id}/${randomUUID()}-${storageSafeName(fileName)}`
     const body = readFileSync(join(attachmentsFolder, row.file))
-    const { error: uploadError } = await supabase.storage.from("risk-attachments").upload(path, body, { upsert: false })
+    const contentType = contentTypeOf(fileName)
+    const { error: uploadError } = await supabase.storage.from("risk-attachments").upload(path, body, { upsert: false, contentType })
     if (uploadError) {
       problems.push(`${row.file}: ${uploadError.message}`)
       continue
     }
     const { error } = await supabase
       .from("risk_attachments")
-      .insert({ risk_id: risk.id, storage_path: path, file_name: fileName, size_bytes: body.length, content_type: null })
+      .insert({ risk_id: risk.id, storage_path: path, file_name: fileName, size_bytes: body.length, content_type: contentType })
     if (error) problems.push(`${row.file}: ${error.message}`)
     else uploaded += 1
   }

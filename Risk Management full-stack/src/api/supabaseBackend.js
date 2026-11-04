@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabase.js"
 import { t } from "../i18n/index.js"
+import { contentTypeOf, saveBlob, storageSafeName } from "../lib/files.js"
 import { explain, toRecord } from "./shared.js"
 
 const run = async (promise) => {
@@ -18,7 +19,6 @@ async function selectAll(build) {
   }
 }
 
-const safeName = (name) => name.normalize("NFC").replace(/[^\w.\- ()À-ÿ]/g, "_")
 
 export const supabaseBackend = {
   mode: "supabase",
@@ -100,21 +100,29 @@ export const supabaseBackend = {
   listAttachments: (riskId) => run(supabase.from("risk_attachments").select("*").eq("risk_id", riskId).order("uploaded_at", { ascending: false })),
 
   async uploadAttachment(riskId, file) {
-    const path = `${riskId}/${crypto.randomUUID()}-${safeName(file.name)}`
-    const { error: uploadError } = await supabase.storage.from("risk-attachments").upload(path, file, { contentType: file.type || undefined })
+    const path = `${riskId}/${crypto.randomUUID()}-${storageSafeName(file.name)}`
+    const contentType = file.type || contentTypeOf(file.name)
+    const { error: uploadError } = await supabase.storage.from("risk-attachments").upload(path, file, { contentType })
     if (uploadError) throw explain(uploadError)
     const { error } = await supabase
       .from("risk_attachments")
-      .insert({ risk_id: riskId, storage_path: path, file_name: file.name, size_bytes: file.size, content_type: file.type || null })
+      .insert({ risk_id: riskId, storage_path: path, file_name: file.name, size_bytes: file.size, content_type: contentType })
     if (error) {
       await supabase.storage.from("risk-attachments").remove([path])
       throw explain(error)
     }
   },
 
+  // Short-lived link to view the file in the browser (PDFs and images open inline).
   async attachmentUrl(attachment) {
-    const data = await run(supabase.storage.from("risk-attachments").createSignedUrl(attachment.storage_path, 300, { download: attachment.file_name }))
+    const data = await run(supabase.storage.from("risk-attachments").createSignedUrl(attachment.storage_path, 300))
     return data.signedUrl
+  },
+
+  async downloadAttachment(attachment) {
+    const { data, error } = await supabase.storage.from("risk-attachments").download(attachment.storage_path)
+    if (error) throw explain(error)
+    saveBlob(data, attachment.file_name)
   },
 
   async deleteAttachment(attachment) {

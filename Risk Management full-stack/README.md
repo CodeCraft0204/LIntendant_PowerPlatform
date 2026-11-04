@@ -109,8 +109,9 @@ scripts/
 From a trusted machine, with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set in `.env.local`:
 
 ```
-npm run import:legacy                        # dry run: counts only
-npm run import:legacy -- --apply             # import
+npm run import:legacy        # dry run: counts only, nothing written
+npm run import:apply         # import the records
+npm run import:attachments   # rebuild attachments-map.csv and upload the mapped files
 ```
 
 By default the import reads the largest export in `../Risk Management`, which should contain every record. It then enriches it with `Sauvegarde complète_with ID.csv`, adding the SharePoint ID, the *Comité opération* checkbox, newer values, and records created after the full export. Re-running is safe, because records already imported are skipped.
@@ -119,7 +120,8 @@ On the 3 Nov backup it reports 355 records (101 active, 254 closed), 57 projects
 
 - **Nothing unapproved is inferred.** Kind, cause, ratings and strategy stay empty until the project managers re-rate the active items (*À recoter*). Once Simon approves the standard Type → Cause mapping (D5), `--map-causes` pre-fills it.
 - **Project names are merged by number.** Two projects appear under two spellings ("TNO"/"Tno", "Utile"/"Utile Québec"); the most frequent name is kept.
-- **Attachments are mapped by hand.** Run `npm run import:legacy -- --attachments-template`. Fill in `attachments-map.csv`, giving each file a project number and the first words of its record's title; `records-with-attachments.csv` lists the 27 records. Then run `npm run import:legacy -- --apply --attachments attachments-map.csv`.
+- **Attachments are matched to their records by [scripts/attachments-mapping.mjs](scripts/attachments-mapping.mjs).** The backup saved all files into one folder, so the link to each record was lost. The script rebuilds it from the file names and contents (email subjects and dates, PDF headers, screenshot times), and writes `attachments-map.csv` with a confidence and the evidence for each file. On the 3 Nov backup it matches 37 of 46 files to 25 of the 27 records. 3 files are identical second copies. 6 photos and plans can't be tied to a record with confidence and are listed "à confirmer": fill in their project and title in the CSV, then run `npm run import:attachments` again. Files already attached are skipped.
+- **On Windows PowerShell,** `npm run x -- --flag` loses the `--`. Use the scripts above. The importer also recognizes the flag when npm keeps it.
 
 ## Tests
 

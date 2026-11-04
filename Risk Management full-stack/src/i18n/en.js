@@ -216,6 +216,9 @@ export default {
     committeeManual: "Committee (manual)",
     attachments: ({ count }) => `${count} attachment${s(count)}`,
     closedOn: "Closed {date}",
+    legacyIndex: "SP index: {index}",
+    legacyType: "SP type: {type}",
+    delay: "{days} d",
     closed: "Closed",
     range: "{from}–{to} of {total}",
     previous: "Previous page",
@@ -340,6 +343,7 @@ export default {
     assessment: "Assessment",
     probability: "Probability",
     probabilityLocked: "Set to 5 for an issue.",
+    legacyIndexNote: "Risk index in SharePoint: {index}. It isn't converted: rate the probability and impact below.",
     impact: "Impact",
     impactHint: "The most severe consequence across cost, schedule, quality, H&S and reputation.",
     consequences: "Consequences",
@@ -396,6 +400,8 @@ export default {
     confirmRemove: "Remove “{name}”?",
     empty: "No attachments.",
     kb: "{size} KB",
+    open: "Open {name}",
+    download: "Download {name}",
   },
 
   journal: {

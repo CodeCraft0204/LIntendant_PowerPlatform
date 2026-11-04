@@ -222,6 +222,9 @@ export default {
     committeeManual: "Comité (manuel)",
     attachments: ({ count }) => `${count} pièce${s(count)} jointe${s(count)}`,
     closedOn: "Fermé le {date}",
+    legacyIndex: "Indice SP : {index}",
+    legacyType: "Type SP : {type}",
+    delay: "{days} j",
     closed: "Fermé",
     range: "{from}–{to} sur {total}",
     previous: "Page précédente",
@@ -346,6 +349,7 @@ export default {
     assessment: "Évaluation",
     probability: "Probabilité",
     probabilityLocked: "Fixée à 5 pour un enjeu.",
+    legacyIndexNote: "Indice de risque dans SharePoint : {index}. Il n'est pas converti : cotez la probabilité et l'impact ci-dessous.",
     impact: "Impact",
     impactHint: "La conséquence la plus grave parmi coût, délai, qualité, SST et réputation.",
     consequences: "Conséquences",
@@ -403,6 +407,8 @@ export default {
     confirmRemove: "Retirer « {name} » ?",
     empty: "Aucune pièce jointe.",
     kb: "{size} Ko",
+    open: "Ouvrir {name}",
+    download: "Télécharger {name}",
   },
 
   journal: {

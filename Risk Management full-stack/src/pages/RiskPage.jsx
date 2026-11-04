@@ -98,9 +98,27 @@ function Attachments({ riskId, canEdit, canRemove }) {
     toast(t("attachments.added"))
   }
 
+  // The tab is opened during the click (so pop-up blockers allow it), then
+  // pointed at the short-lived link once it is ready.
   const open = async (attachment) => {
+    setError(null)
+    const tab = window.open("about:blank", "_blank")
     try {
-      window.open(await api.attachmentUrl(attachment), "_blank", "noopener")
+      const url = await api.attachmentUrl(attachment)
+      if (tab) {
+        tab.opener = null
+        tab.location.href = url
+      } else window.location.assign(url)
+    } catch (failure) {
+      tab?.close()
+      setError(failure.message)
+    }
+  }
+
+  const download = async (attachment) => {
+    setError(null)
+    try {
+      await api.downloadAttachment(attachment)
     } catch (failure) {
       setError(failure.message)
     }
@@ -129,12 +147,26 @@ function Attachments({ riskId, canEdit, canRemove }) {
           {attachments.map((attachment) => (
             <li key={attachment.id} className="flex items-center gap-2 rounded-md border border-line px-2.5 py-2">
               <Icon name="paperclip" className="size-4 shrink-0 text-muted" />
-              <button type="button" className="min-w-0 flex-1 truncate text-left text-[13px] font-medium text-link hover:underline" onClick={() => open(attachment)}>
+              <button
+                type="button"
+                className="min-w-0 flex-1 truncate text-left text-[13px] font-medium text-link hover:underline"
+                onClick={() => open(attachment)}
+                title={t("attachments.open", { name: attachment.file_name })}
+              >
                 {attachment.file_name}
               </button>
               {attachment.size_bytes != null && (
                 <span className="text-[11px] text-muted">{t("attachments.kb", { size: Math.max(1, Math.round(attachment.size_bytes / 1024)) })}</span>
               )}
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm btn-icon"
+                aria-label={t("attachments.download", { name: attachment.file_name })}
+                title={t("attachments.download", { name: attachment.file_name })}
+                onClick={() => download(attachment)}
+              >
+                <Icon name="download" />
+              </button>
               {canRemove && (
                 <button
                   type="button"
@@ -536,6 +568,11 @@ function RiskForm({ risk, isNew }) {
                   </Field>
                 </div>
               </div>
+              {!live.score && risk?.legacy_risk_index && (
+                <div className="mt-4">
+                  <Alert tone="info">{t("risk.legacyIndexNote", { index: risk.legacy_risk_index })}</Alert>
+                </div>
+              )}
               <div className="mt-4">
                 <Guidance reference={reference} probability={values.probability} impact={values.impact} />
               </div>
