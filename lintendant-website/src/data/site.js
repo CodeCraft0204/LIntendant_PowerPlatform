@@ -12,6 +12,19 @@ export const HERO_SLUGS = [
   "quality-inn",
 ]
 
+// One photo per lifecycle stage (content.lifecycle.stages), in order. The
+// early stages are the team's own black-and-white portraits; colour arrives
+// as the building takes shape.
+export const LIFECYCLE_IMAGES = [
+  "portrait-terrain",
+  "portrait-plans",
+  "utile-trois-rivieres",
+  "portrait-chantier",
+  "costco-trois-rivieres",
+  "club-med-quebec-charlevoix",
+  "omhq-bardy",
+]
+
 // "Nos projets récents", as listed on the legacy page (duplicates removed).
 export const FEATURED_SLUGS = [
   "camp-boule-buvette-montagne",

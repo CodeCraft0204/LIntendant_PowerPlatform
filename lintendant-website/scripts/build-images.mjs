@@ -1,4 +1,5 @@
-// Builds the site's image set from the legacy lintendant.com export.
+// Builds the site's image set from the legacy lintendant.com export (plus
+// the photos in assets/).
 //
 //   npm run images            only (re)builds renditions that are missing
 //   npm run images -- --force rebuilds everything
@@ -30,6 +31,7 @@ const W_PROJECT = [480, 960, 1600]
 const W_HERO = [960, 1600, 1920, 2560]
 const W_PANORAMA = [960, 1600, 2200]
 const W_PORTRAIT = [480, 768]
+const W_SQUARE = [480, 960]
 
 // Index every file of the export by its NFC name. Names saved from the web
 // are often NFD on disk ("é" as "e" + combining accent), so a direct join
@@ -40,6 +42,8 @@ for (const dir of readdirSync(SRC)) {
   if (!statSync(full).isDirectory()) continue
   for (const name of readdirSync(full)) index.set(name.normalize("NFC"), join(full, name))
 }
+// Photos supplied directly for the new site live in assets/.
+for (const name of readdirSync(join(ROOT, "assets"))) index.set(name.normalize("NFC"), join(ROOT, "assets", name))
 
 function locate(file) {
   const found = index.get(file.normalize("NFC"))
@@ -53,6 +57,9 @@ const jobs = [
   { slug: "entete-propos", file: "entete-propos.jpg", widths: W_PANORAMA },
   { slug: "entete-service", file: "entete-service.jpg", widths: W_PANORAMA },
   { slug: "construction-man", file: "construction-man.jpg", widths: W_PORTRAIT },
+  { slug: "portrait-terrain", file: "portrait-terrain.jpg", widths: W_SQUARE },
+  { slug: "portrait-plans", file: "portrait-plans.jpg", widths: W_SQUARE },
+  { slug: "portrait-chantier", file: "portrait-chantier.jpg", widths: W_SQUARE },
 ]
 
 mkdirSync(OUT, { recursive: true })

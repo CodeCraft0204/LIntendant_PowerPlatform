@@ -16,7 +16,7 @@ export default {
       "Gestion de projet, gérance de construction, clé en main ou forfait : L'Intendant bâtit vos projets commerciaux, institutionnels, hôteliers et résidentiels avec une approche 360° et une équation coût-temps-performance optimale.",
   },
 
-  ids: { trust: "confiance", approach: "approche", services: "services", projects: "realisations", about: "a-propos", careers: "carrieres", contact: "contact" },
+  ids: { trust: "confiance", approach: "approche", lifecycle: "cycle-de-vie", services: "services", projects: "realisations", about: "a-propos", careers: "carrieres", contact: "contact" },
 
   ui: {
     skip: "Aller au contenu",
@@ -152,6 +152,57 @@ export default {
       },
     ],
     note: "Nous pouvons assumer une partie ou la totalité de ces responsabilités.",
+  },
+
+  lifecycle: {
+    eyebrow: "Cycle de vie du projet",
+    title: "Du terrain *à la livraison*",
+    lead: "Que votre projet soit encore une idée ou déjà en chantier, nous intervenons là où vous en êtes. Et plus nous intervenons tôt, plus le projet profite de notre expérience.",
+    hint: "Sélectionnez une étape",
+    stages: [
+      {
+        name: "Terrain",
+        text: "Recherche de terrain, négociation et financement des travaux : nous intervenons en amont, avant même le premier plan.",
+        cta: "Notre approche",
+        target: "approach",
+      },
+      {
+        name: "Préfaisabilité",
+        text: "L'analyse du projet sous tous ses angles : budget préliminaire, zonage, acceptabilité sociale, permis et assurances.",
+        cta: "Notre approche",
+        target: "approach",
+      },
+      {
+        name: "Conception",
+        text: "Sélection des architectes et des ingénieurs, choix des matériaux, plans et devis, et un échéancier de construction réaliste.",
+        cta: "Nos formules",
+        target: "services",
+      },
+      {
+        name: "Chantier",
+        text: "Supervision et gestion du chantier, coordination des entrepreneurs spécialisés, dans le respect des normes de la CNESST.",
+        cta: "Nos formules",
+        target: "services",
+      },
+      {
+        name: "Construction",
+        text: "Exécution des travaux, contrôle de la qualité sur le chantier et suivi budgétaire rigoureux, jusqu'à la dernière facture.",
+        cta: "Nos réalisations",
+        target: "projects",
+      },
+      {
+        name: "Livraison",
+        text: "Inspection et vérification de la conformité des travaux : un bâtiment livré à la hauteur de vos exigences.",
+        cta: "Nos réalisations",
+        target: "projects",
+      },
+      {
+        name: "Maintien d'actifs",
+        text: "Après la livraison, nous pouvons aussi vous accompagner en mode maintien d'actifs.",
+        cta: "Nous joindre",
+        target: "contact",
+      },
+    ],
   },
 
   services: {

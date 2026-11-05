@@ -3,6 +3,7 @@ import {
   EMAIL,
   FEATURED_SLUGS,
   HERO_SLUGS,
+  LIFECYCLE_IMAGES,
   MARQUEE,
   PORTFOLIO_PAGE,
   SECTOR_ORDER,
@@ -123,11 +124,26 @@ export function trust(c) {
       </li><li class="eq__op" aria-hidden="true" data-reveal style="--d:${i * 0.12 + 0.06}s">${ops[i]}</li>`,
     )
     .join("")
+  // The legacy cost-time-performance triangle. Each corner lights up as the
+  // statement's matching word is lit on scroll, and the edges draw between them.
+  const [cost, time, perf] = t.equation.map((e) => esc(e.term))
+  const triangle = `<figure class="tri" data-tri aria-hidden="true"><div class="tri__box">
+      <svg class="tri__svg" viewBox="-8 0 396 250" focusable="false">
+        <path class="tri__line" d="M92 214H288L190 44Z" pathLength="3"/>
+        <text class="tri__label" x="78" y="222" text-anchor="end" data-term>${cost}</text>
+        <text class="tri__label" x="302" y="222" data-term>${time}</text>
+        <text class="tri__label" x="190" y="24" text-anchor="middle" data-term>${perf}</text>
+      </svg>
+      ${markShapes("tri__mark")}
+    </div></figure>`
   return `<section class="trust lined" id="${c.ids.trust}">
   <div class="bp bp--trust" aria-hidden="true" data-reveal="draw" data-parallax><i></i></div>
   <div class="wrap">
     ${eyebrow(t.eyebrow)}
-    <p class="trust__statement" data-scrub>${statement}</p>
+    <div class="trust__head">
+      <p class="trust__statement" data-scrub>${statement}</p>
+      ${triangle}
+    </div>
     <ol class="eq">${terms}<li class="eq__item eq__item--result" data-reveal style="--d:.42s">
       <span class="eq__n">${markShapes("eq__mark")}</span>
       <span class="eq__term">${esc(t.result.term)}</span>
@@ -137,6 +153,48 @@ export function trust(c) {
       <p class="trust__body" data-reveal>${esc(t.body)}</p>
       <div data-reveal>${btn(t.cta, href(c, "approach"), "primary")}</div>
     </div>
+  </div>
+</section>`
+}
+
+/* ------------------------------------------------------------- lifecycle */
+
+// Project lifecycle accordion: one tall photo strip per stage. Closed strips
+// are grey; the open one widens, comes alive in colour and shows its text.
+// Each strip holds its own button, so on phones it stacks as an accordion.
+export function lifecycle(c) {
+  const l = c.lifecycle
+  const items = l.stages
+    .map((s, i) => {
+      const on = i === 0
+      return `<div class="lc__item${on ? " is-active" : ""}" data-lc-item style="--k:${i}">
+      ${img(LIFECYCLE_IMAGES[i], { sizes: "(min-width: 900px) 46vw, 100vw", className: "lc__img" })}
+      <button class="lc__tab" type="button" id="lc-tab-${i}" aria-expanded="${on}" aria-controls="lc-${i}">
+        <span class="lc__tab-n">${pad(i + 1)}</span>
+        <span class="lc__tab-name">${esc(s.name)}</span>
+        <span class="lc__plus">${icon.plus}</span>
+      </button>
+      <div class="lc__body" id="lc-${i}">
+        <div class="lc__inner"><div class="lc__content">
+          <p class="lc__title"><span>${pad(i + 1)}</span>${esc(s.name)}</p>
+          <p class="lc__text">${esc(s.text)}</p>
+          <a class="link-arrow link-arrow--light" href="${href(c, s.target)}"><span>${esc(s.cta)}</span>${icon.arrow}</a>
+        </div></div>
+      </div>
+    </div>`
+    })
+    .join("")
+
+  return `<section class="lifecycle lined" id="${c.ids.lifecycle}">
+  <div class="wrap">
+    <header class="sec-head sec-head--split">
+      <div>${eyebrow(l.eyebrow)}${title(l.title)}</div>
+      <div class="lifecycle__intro">
+        <p class="lead" data-reveal>${esc(l.lead)}</p>
+        <p class="lifecycle__hint" data-reveal>${icon.plus}${esc(l.hint)}</p>
+      </div>
+    </header>
+    <div class="lc" data-lc data-reveal="lc" style="--n:${l.stages.length}">${items}</div>
   </div>
 </section>`
 }

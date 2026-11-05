@@ -7,7 +7,7 @@ import fr from "../content/fr.js"
 import { PROJECTS } from "../data/projects.js"
 import { EMAIL, HERO_SLUGS, SECTOR_ORDER, SITE_URL } from "../data/site.js"
 import { markShapes, wordmark } from "./brand.js"
-import { about, approach, careers, contact, hero, lightbox, marquee, projects, services, stats, trust } from "./sections.js"
+import { about, approach, careers, contact, hero, lifecycle, lightbox, marquee, projects, services, stats, trust } from "./sections.js"
 import { btn, esc, icon, img, pad, srcsetOf } from "./util.js"
 
 const CONTENT = { fr, en }
@@ -172,6 +172,7 @@ ${hero(c)}
 ${marquee(c)}
 ${trust(c)}
 ${approach(c)}
+${lifecycle(c)}
 ${services(c)}
 ${stats(c)}
 ${projects(c)}

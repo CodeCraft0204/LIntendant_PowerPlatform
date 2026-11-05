@@ -13,7 +13,7 @@ export default {
       "Project management, construction management, turnkey or fixed-price: L'Intendant builds commercial, institutional, hospitality and residential projects with a 360° approach and an optimal cost-time-performance equation.",
   },
 
-  ids: { trust: "trust", approach: "approach", services: "services", projects: "projects", about: "about", careers: "careers", contact: "contact" },
+  ids: { trust: "trust", approach: "approach", lifecycle: "lifecycle", services: "services", projects: "projects", about: "about", careers: "careers", contact: "contact" },
 
   ui: {
     skip: "Skip to content",
@@ -145,6 +145,57 @@ export default {
       },
     ],
     note: "We can take on some or all of these responsibilities.",
+  },
+
+  lifecycle: {
+    eyebrow: "Project lifecycle",
+    title: "From site *to handover*",
+    lead: "Whether your project is still an idea or already under construction, we step in wherever you are. And the earlier we're involved, the more your project benefits from our experience.",
+    hint: "Select a stage",
+    stages: [
+      {
+        name: "Site",
+        text: "Site search, negotiation and project financing: we step in upstream, before the first drawing.",
+        cta: "Our approach",
+        target: "approach",
+      },
+      {
+        name: "Pre-feasibility",
+        text: "Analysing the project from every angle: preliminary budget, zoning, social acceptability, permits and insurance.",
+        cta: "Our approach",
+        target: "approach",
+      },
+      {
+        name: "Design",
+        text: "Selecting architects and engineers, choosing materials, plans and specifications, and a realistic construction schedule.",
+        cta: "Our formulas",
+        target: "services",
+      },
+      {
+        name: "Site works",
+        text: "Site supervision and management, coordination of specialized contractors, in line with CNESST standards.",
+        cta: "Our formulas",
+        target: "services",
+      },
+      {
+        name: "Construction",
+        text: "Carrying out the work, on-site quality control and rigorous budget tracking, down to the final invoice.",
+        cta: "Our projects",
+        target: "projects",
+      },
+      {
+        name: "Handover",
+        text: "Inspection and compliance checks of the work: a building delivered to the standard you require.",
+        cta: "Our projects",
+        target: "projects",
+      },
+      {
+        name: "Asset maintenance",
+        text: "After handover, we can also support you in asset maintenance mode.",
+        cta: "Contact us",
+        target: "contact",
+      },
+    ],
   },
 
   services: {

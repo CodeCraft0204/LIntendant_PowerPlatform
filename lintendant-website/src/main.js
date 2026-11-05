@@ -259,7 +259,26 @@ $$("[data-reveal]").forEach((el) => revealer.observe(el))
   const el = $("[data-scrub]")
   if (!el) return
   const words = $$(".sw", el)
-  if (reduceMotion) return words.forEach((w) => w.classList.add("is-on"))
+  // The triangle's corners follow the statement's "cost", "time" and
+  // "performance" words; step 1–3 draws the edges, 4 closes it at the end.
+  const tri = $("[data-tri]")
+  const corners = tri ? $$("[data-term]", tri) : []
+  const norm = (s) => s.toLowerCase().replace(/[^\p{L}]/gu, "")
+  const wordOf = corners.map((t) => words.findIndex((w) => norm(w.textContent) === norm(t.textContent)))
+
+  function paint(n) {
+    words.forEach((w, i) => w.classList.toggle("is-on", i < n))
+    if (!tri) return
+    let step = 0
+    corners.forEach((t, k) => {
+      const on = wordOf[k] >= 0 && wordOf[k] < n
+      t.classList.toggle("is-on", on)
+      step += on
+    })
+    tri.dataset.step = n >= words.length ? 4 : step
+  }
+
+  if (reduceMotion) return paint(words.length)
   let lit = -1
   scrollHandlers.push(() => {
     const r = el.getBoundingClientRect()
@@ -269,7 +288,7 @@ $$("[data-reveal]").forEach((el) => revealer.observe(el))
     const n = Math.round(p * words.length)
     if (n === lit) return
     lit = n
-    words.forEach((w, i) => w.classList.toggle("is-on", i < n))
+    paint(n)
   })
 })()
 
@@ -363,6 +382,27 @@ function tabs(root, tabSel, panelSel, onChange) {
     }
   })
   $$("[data-goto-svc]").forEach((a) => a.addEventListener("click", () => select(Number(a.dataset.gotoSvc))))
+})()
+
+/* ------------------------------------------------------ lifecycle stages */
+
+// One stage open at a time. A click anywhere on a closed strip opens it;
+// stages before the open one are marked done for the progress line.
+;(() => {
+  const items = $$("[data-lc-item]")
+  if (!items.length) return
+  function open(i) {
+    items.forEach((it, k) => {
+      it.classList.toggle("is-active", k === i)
+      it.classList.toggle("is-done", k < i)
+      $(".lc__tab", it).setAttribute("aria-expanded", String(k === i))
+    })
+  }
+  items.forEach((it, i) =>
+    it.addEventListener("click", (e) => {
+      if (!e.target.closest("a")) open(i)
+    }),
+  )
 })()
 
 /* --------------------------------------------------------- featured rail */

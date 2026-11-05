@@ -28,7 +28,7 @@ npm run images    # rebuild public/img from the legacy site export (see below)
 ```
 src/content/fr.js, en.js   all copy, key for key in both languages
 src/data/projects.js       the 77 portfolio projects (name, sector, source photo)
-src/data/site.js           hero photos, featured projects, marquee, sector order, email
+src/data/site.js           hero photos, lifecycle stage photos, featured projects, marquee, sector order, email
 src/render/                HTML templates (page.js = document, sections.js = sections)
 src/render/brand.js        wordmark + L' mark vectors (from the legacy site's inline SVG)
 src/styles/main.css        design tokens and all styles
@@ -46,7 +46,8 @@ source folder, then run `npm run images`.
 
 `scripts/build-images.mjs` reads the original photos from the saved legacy site
 (`../Risk Management full-stack/src/assets/Origin Lintendant`, or another folder
-via `IMAGES_SRC=...`) and writes:
+via `IMAGES_SRC=...`), plus the photos supplied for the new site in `assets/`
+(the team portraits used in the lifecycle section), and writes:
 
 - `public/img/<slug>-<width>.webp` at several widths, never upscaled
 - `src/data/images.generated.js` with sizes and blur placeholders
