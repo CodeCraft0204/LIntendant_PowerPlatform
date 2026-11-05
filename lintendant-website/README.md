@@ -51,6 +51,9 @@ via `IMAGES_SRC=...`) and writes:
 - `public/img/<slug>-<width>.webp` at several widths, never upscaled
 - `src/data/images.generated.js` with sizes and blur placeholders
 - `public/favicon.svg` and the social share image `public/og.jpg`
+- `public/img/blueprint-<width>.webp` from the construction line drawing in
+  `assets/hero-bg.png`, used as a CSS mask (`.bp` in the stylesheet) so each
+  section can tint it
 
 The generated files are committed, so building the site does not need the
 source photos. Re-run the script only when photos change (`-- --force` to
@@ -72,3 +75,9 @@ VITE_CONTACT_ENDPOINT=https://formspree.io/f/xxxx npm run build
 Navy `#003865`, slate `#7C878E`, silver `#C7C9C8`, mist `#DEE1E3`, Montserrat.
 The wordmark's slate apostrophe bar is reused as the eyebrow accent, and the
 stem of the L' mark is used for bullets and separators.
+
+Two vertical grid lines run from the header through every section to the
+footer (`--gl-l` / `--gl-r` in `main.css`, on any element with the `lined`
+class). On desktop they split the header into logo | menu | actions, and the
+hero panel, the cost-time-performance equation, the stats and the footer
+columns are aligned to them.

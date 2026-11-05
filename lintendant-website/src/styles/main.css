@@ -36,11 +36,29 @@
   --inset: max(var(--gutter), calc((100vw - var(--maxw)) / 2 + var(--gutter)));
   --sec: clamp(5rem, 11vw, 9.5rem);
   --hdr-h: 92px;
+
+  /* Structural grid lines: two verticals placed inside the .wrap content
+     box, shared by the header, every section and the footer so they run
+     unbroken down the page. --gl-l is measured from the left, --gl-r from
+     the right; on desktop they bound the header's logo and action cells,
+     below that --gl-r is the burger cell. */
+  --gl-burger: 7.5rem;
+  --gl-l: max(272px, 24%);
+  --gl-r: var(--gl-burger);
+  --gl-color: rgba(0, 56, 101, 0.08);
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --gl-r: max(272px, 24%);
+  }
 }
 
 @media (max-width: 719px) {
   :root {
     --hdr-h: 72px;
+    --gl-burger: 6rem;
+    --gl-l: -2px;
   }
 }
 
@@ -151,6 +169,89 @@ strong {
   max-width: var(--maxw);
   margin-inline: auto;
   padding-inline: var(--gutter);
+}
+
+/* ------------------------------------------------------------ grid lines */
+
+.lined {
+  position: relative;
+  isolation: isolate;
+  box-shadow: inset 0 1px var(--gl-color);
+}
+
+.lined:has(> .bp) {
+  overflow: clip;
+}
+
+/* Same geometry as .wrap, so the lines land on the same x in every block. */
+.lined::after,
+.hdr::after,
+.menu::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: min(100%, var(--maxw));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  background:
+    linear-gradient(var(--gl-color), var(--gl-color)) left var(--gl-l) top 0 / 1px 100% no-repeat content-box,
+    linear-gradient(var(--gl-color), var(--gl-color)) right var(--gl-r) top 0 / 1px 100% no-repeat content-box;
+  pointer-events: none;
+}
+
+@media (max-width: 719px) {
+  .lined::after {
+    display: none;
+  }
+}
+
+.approach,
+.stats,
+.careers,
+.ftr {
+  --gl-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Construction line drawing, tinted per section: only the mask's alpha is
+   used, the colour comes from the background. The drawing is on the inner
+   element so the reveal can clip it while the observer watches the box. */
+.bp {
+  --bp-src: url("/img/blueprint-1600.webp");
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bp > i {
+  position: absolute;
+  inset: 0;
+  background: var(--bp-color, rgba(0, 56, 101, 0.11));
+  -webkit-mask: var(--bp-src) var(--bp-pos, right bottom) / var(--bp-size, min(1500px, 110%)) auto no-repeat;
+  mask: var(--bp-src) var(--bp-pos, right bottom) / var(--bp-size, min(1500px, 110%)) auto no-repeat;
+}
+
+@media (max-width: 760px) {
+  .bp {
+    --bp-src: url("/img/blueprint-900.webp");
+  }
+}
+
+.bp--trust {
+  --bp-pos: right -6% top 18%;
+  --bp-size: min(1350px, 92%);
+}
+
+.bp--services {
+  --bp-pos: right -4% top -1%;
+  --bp-size: min(1450px, 105%);
+  scale: -1 1;
+}
+
+.bp--contact {
+  --bp-pos: right -10% bottom -6%;
+  --bp-size: min(1300px, 90%);
 }
 
 .skip {
@@ -430,15 +531,16 @@ strong {
 /* ---------------------------------------------------------------- header */
 
 .hdr {
+  --gl-color: color-mix(in srgb, currentColor 20%, transparent);
   position: fixed;
   inset: 0 0 auto;
   z-index: 50;
   color: #fff;
+  box-shadow: inset 0 -1px var(--gl-color);
   transition:
     transform 0.55s var(--ease-out),
     background-color 0.4s,
-    color 0.4s,
-    box-shadow 0.4s;
+    color 0.4s;
 }
 
 /* Soft scrim so the white header stays readable over any photo. */
@@ -455,9 +557,9 @@ strong {
 .hdr.is-solid,
 .hdr:has(.has-mega:hover),
 .hdr:has(.has-mega:focus-within) {
+  --gl-color: color-mix(in srgb, currentColor 12%, transparent);
   background: #fff;
   color: var(--navy);
-  box-shadow: 0 1px 0 var(--line);
 }
 
 .hdr.is-solid::before,
@@ -494,23 +596,6 @@ strong {
 .hdr__wordmark {
   height: 61%;
   width: auto;
-}
-
-.hdr__tag {
-  display: none;
-  padding-left: clamp(1rem, 1.5vw, 1.5rem);
-  border-left: 1px solid currentColor;
-  border-left-color: color-mix(in srgb, currentColor 30%, transparent);
-  font-size: 0.7rem;
-  font-weight: 400;
-  line-height: 1.35;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.hdr__tag strong {
-  font-weight: 700;
 }
 
 .nav {
@@ -635,12 +720,17 @@ strong {
   background: var(--navy);
 }
 
-/* Burger: the stepped three bars of the legacy menu icon. */
+/* Burger: the stepped three bars of the legacy menu icon. It fills the
+   last grid cell, so its left edge sits on the right grid line. */
 .burger {
+  flex: none;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.75rem;
+  width: var(--gl-burger);
   height: 2.9rem;
+  margin-left: 0.5rem;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -935,14 +1025,18 @@ strong {
 }
 
 body.menu-open .hdr {
+  --gl-color: color-mix(in srgb, currentColor 20%, transparent);
   background: transparent;
   color: #fff;
-  box-shadow: none;
   transform: none;
 }
 
 body.menu-open .hdr::before {
   opacity: 0;
+}
+
+.menu {
+  --gl-color: rgba(255, 255, 255, 0.1);
 }
 
 @media (min-width: 560px) {
@@ -957,12 +1051,32 @@ body.menu-open .hdr::before {
   }
 }
 
-@media (min-width: 1100px) {
-  .nav {
-    display: block;
+/* Desktop: logo | nav | actions, the cells split by the two grid lines
+   (no gap, or the cells would drift off the lines). */
+@media (min-width: 1280px) {
+  .hdr__bar {
+    display: grid;
+    grid-template-columns: var(--gl-l) minmax(0, 1fr) var(--gl-r);
+    gap: 0;
   }
 
-  .nav + .hdr__end {
+  .hdr__logo {
+    justify-self: start;
+  }
+
+  .nav {
+    display: block;
+    margin-left: 0;
+    padding-inline: clamp(1.25rem, 2.4vw, 2.75rem);
+  }
+
+  .nav__list {
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .hdr__end {
+    justify-content: flex-end;
     margin-left: 0;
   }
 
@@ -975,15 +1089,10 @@ body.menu-open .hdr::before {
   }
 }
 
-@media (min-width: 1560px) {
-  .hdr__tag {
-    display: block;
-  }
-}
-
 /* ------------------------------------------------------------------ hero */
 
 .hero {
+  --gl-color: rgba(255, 255, 255, 0.16);
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -992,6 +1101,11 @@ body.menu-open .hdr::before {
   min-height: max(660px, 100svh);
   background: var(--navy-deep);
   color: #fff;
+}
+
+/* The header draws its own segment of the lines. */
+.hero::after {
+  top: var(--hdr-h);
 }
 
 .hero__media {
@@ -1354,6 +1468,40 @@ body.menu-open .hdr::before {
   }
 }
 
+/* The options panel fills the actions cell, its left edge on the line. */
+@media (min-width: 1280px) {
+  .hero__inner {
+    grid-template-columns: minmax(0, 1fr) var(--gl-r);
+    column-gap: 0;
+  }
+
+  .hero__copy {
+    padding-right: clamp(2rem, 4vw, 4.5rem);
+  }
+
+  .hero__panel {
+    border-left-color: transparent;
+  }
+
+  .hero__foot {
+    gap: 0;
+  }
+
+  .hero__dots {
+    flex: 0 0 calc(100% - var(--gl-r));
+    max-width: none;
+    padding-right: clamp(2rem, 4vw, 4.5rem);
+  }
+
+  .hero__pause {
+    margin-left: 1.4rem;
+  }
+
+  .hero__scroll {
+    margin-left: auto;
+  }
+}
+
 @media (max-width: 1099px) {
   .hero__inner {
     grid-template-columns: 1fr;
@@ -1579,6 +1727,19 @@ html:not(.js) .eq__item::before {
   max-width: 44em;
   font-size: 1.1rem;
   color: var(--muted);
+}
+
+/* Desktop: the first "+" and the "=" sit on the two grid lines. */
+@media (min-width: 1280px) {
+  .eq {
+    --op: 4rem;
+    grid-template-columns: calc(var(--gl-l) - var(--op) / 2) var(--op) 1fr var(--op) 1fr var(--op) calc(var(--gl-r) - var(--op) / 2);
+    column-gap: 0;
+  }
+
+  .eq__op {
+    justify-self: center;
+  }
 }
 
 @media (max-width: 980px) {
@@ -2354,6 +2515,14 @@ html:not(.js) .eq__item::before {
   color: rgba(255, 255, 255, 0.72);
 }
 
+/* Desktop: the dividers of the 2nd and 4th stats fall on the grid lines. */
+@media (min-width: 1280px) {
+  .stats__list {
+    grid-template-columns: var(--gl-l) minmax(0, 1fr) minmax(0, 1fr) var(--gl-r);
+    column-gap: 0;
+  }
+}
+
 @media (max-width: 860px) {
   .stats__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2984,10 +3153,11 @@ html:not(.js) .pillar::before {
   fill: var(--navy);
 }
 
+/* Opaque (navy + 5% white) so the grid lines don't show through. */
 .open {
   padding: clamp(1.4rem, 2.5vw, 2rem);
   border: 1px solid var(--line-light);
-  background: rgba(255, 255, 255, 0.05);
+  background: #0d426d;
 }
 
 .open h3 {
@@ -3375,9 +3545,46 @@ html:not(.js) .pillar::before {
 }
 
 .ftr__top {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
   gap: 2.5rem;
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+/* Full-bleed horizontal rules (the footer clips them to the viewport). */
+.ftr__top::after,
+.ftr__bottom::before {
+  content: "";
+  position: absolute;
+  left: -100vw;
+  right: -100vw;
+  height: 1px;
+  background: var(--gl-color);
+}
+
+.ftr__top::after {
+  bottom: 0;
+}
+
+.ftr__bottom::before {
+  top: 0;
+}
+
+/* Desktop: brand | links | links | contact, on the page's grid lines. */
+@media (min-width: 1280px) {
+  .ftr__top {
+    grid-template-columns: var(--gl-l) minmax(0, 1fr) minmax(0, 1fr) var(--gl-r);
+    gap: 0;
+  }
+
+  .ftr__brand {
+    padding-right: 2rem;
+  }
+
+  .ftr__top > :not(.ftr__brand) {
+    padding-left: clamp(1.75rem, 3vw, 3.25rem);
+  }
 }
 
 .ftr__tagline {
@@ -3426,7 +3633,7 @@ html:not(.js) .pillar::before {
 
 .ftr__wordmark {
   display: block;
-  margin-top: clamp(3.5rem, 8vw, 6.5rem);
+  margin-top: clamp(2.5rem, 6vw, 5rem);
   color: #fff;
 }
 
@@ -3451,9 +3658,9 @@ html:not(.js) .pillar::before {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  position: relative;
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
   padding-block: 1.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
   font-size: 0.84rem;
   color: rgba(255, 255, 255, 0.6);
 }
@@ -3698,6 +3905,21 @@ html:not(.js) .pillar::before {
   transition:
     opacity 1s var(--ease-out),
     transform 1.4s var(--ease-out);
+}
+
+/* The line drawing sketches itself in across the section. */
+.js [data-reveal="draw"] {
+  transform: none;
+  transition: opacity 1.2s var(--ease-out);
+}
+
+.js [data-reveal="draw"] > i {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 2.8s var(--ease-io);
+}
+
+.js [data-reveal="draw"].is-in > i {
+  clip-path: inset(0);
 }
 
 /* ---------------------------------------------------------- reduced motion */

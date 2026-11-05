@@ -75,7 +75,7 @@ export function hero(c) {
     )
     .join("")
 
-  return `<section class="hero" data-hero aria-label="${esc(c.hero.h1)}">
+  return `<section class="hero lined" data-hero aria-label="${esc(c.hero.h1)}">
   <div class="hero__media" aria-hidden="true">${slides}<div class="hero__shade"></div></div>
   <div class="hero__inner wrap">
     <div class="hero__copy">
@@ -100,7 +100,7 @@ export function hero(c) {
 
 export function marquee(c) {
   const items = MARQUEE.map((name, i) => `<li class="${i % 2 ? "is-outline" : ""}">${esc(name)}</li><li class="sep" aria-hidden="true"></li>`).join("")
-  return `<section class="marquee" aria-label="${esc(c.marqueeLabel)}">
+  return `<section class="marquee lined" aria-label="${esc(c.marqueeLabel)}">
   <div class="marquee__track" data-marquee><ul>${items}</ul><ul aria-hidden="true">${items}</ul></div>
 </section>`
 }
@@ -123,7 +123,8 @@ export function trust(c) {
       </li><li class="eq__op" aria-hidden="true" data-reveal style="--d:${i * 0.12 + 0.06}s">${ops[i]}</li>`,
     )
     .join("")
-  return `<section class="trust" id="${c.ids.trust}">
+  return `<section class="trust lined" id="${c.ids.trust}">
+  <div class="bp bp--trust" aria-hidden="true" data-reveal="draw" data-parallax><i></i></div>
   <div class="wrap">
     ${eyebrow(t.eyebrow)}
     <p class="trust__statement" data-scrub>${statement}</p>
@@ -195,7 +196,7 @@ export function approach(c) {
     })
     .join("")
 
-  return `<section class="approach" id="${c.ids.approach}" data-phases>
+  return `<section class="approach lined" id="${c.ids.approach}" data-phases>
   <div class="approach__band" aria-hidden="true">
     ${img("entete-approche", { sizes: "141vw", className: "approach__band-img", attrs: "data-parallax" })}
     <span class="approach__big">360°</span>
@@ -250,7 +251,8 @@ export function services(c) {
     })
     .join("")
 
-  return `<section class="services" id="${c.ids.services}" data-svc-tabs>
+  return `<section class="services lined" id="${c.ids.services}" data-svc-tabs>
+  <div class="bp bp--services" aria-hidden="true" data-reveal="draw" data-parallax><i></i></div>
   <div class="wrap">
     <header class="sec-head sec-head--split">
       <div>${eyebrow(s.eyebrow)}${title(s.title)}</div>
@@ -280,7 +282,7 @@ export function stats(c) {
     </li>`,
     )
     .join("")
-  return `<section class="stats" aria-label="L'Intendant">
+  return `<section class="stats lined" aria-label="L'Intendant">
   ${markShapes("stats__mark")}
   <ul class="wrap stats__list">${items}</ul>
 </section>`
@@ -333,7 +335,7 @@ export function projects(c) {
     </li>`,
   ).join("")
 
-  return `<section class="projects" id="${c.ids.projects}">
+  return `<section class="projects lined" id="${c.ids.projects}">
   <div class="wrap">
     <header class="sec-head sec-head--split">
       <div>${eyebrow(t.eyebrow)}${title(t.title)}</div>
@@ -375,7 +377,7 @@ export function about(c) {
       (p, i) => `<li class="pillar" data-reveal style="--d:${i * 0.1}s"><span class="pillar__n">${pad(i + 1)}</span><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p></li>`,
     )
     .join("")
-  return `<section class="about" id="${c.ids.about}">
+  return `<section class="about lined" id="${c.ids.about}">
   <div class="wrap">
     <div class="about__grid">
       <div class="about__copy">
@@ -405,7 +407,7 @@ export function careers(c) {
       return `<li><a class="job" href="${mail}"><span class="job__n">${pad(i + 1)}</span><span class="job__title">${esc(p)}</span><span class="job__cta">${esc(k.apply)}${icon.arrow}</span></a></li>`
     })
     .join("")
-  return `<section class="careers" id="${c.ids.careers}">
+  return `<section class="careers lined" id="${c.ids.careers}">
   <div class="wrap careers__grid">
     <div class="careers__aside">
       <figure class="careers__media" data-reveal="clip">
@@ -442,7 +444,8 @@ export function contact(c) {
   const select = (name, label, opts) =>
     `<div class="field field--select"><select id="f-${name}" name="${name}"><option value="">${esc(f.choose)}</option>${opts}</select><label for="f-${name}">${esc(label)}</label>${icon.chevron}</div>`
 
-  return `<section class="contact" id="${c.ids.contact}">
+  return `<section class="contact lined" id="${c.ids.contact}">
+  <div class="bp bp--contact" aria-hidden="true" data-reveal="draw" data-parallax><i></i></div>
   <div class="wrap contact__grid">
     <div class="contact__intro">
       ${eyebrow(k.eyebrow)}

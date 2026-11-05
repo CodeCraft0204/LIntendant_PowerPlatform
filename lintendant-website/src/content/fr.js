@@ -34,7 +34,6 @@ export default {
   },
 
   header: {
-    tagline: ["*Gestionnaire* de projets", "et constructeur"],
     nav: [
       { key: "approach", label: "Approche" },
       { key: "services", label: "Services", mega: "services" },

@@ -31,7 +31,6 @@ export default {
   },
 
   header: {
-    tagline: ["*Project manager*", "and builder"],
     nav: [
       { key: "approach", label: "Approach" },
       { key: "services", label: "Services", mega: "services" },

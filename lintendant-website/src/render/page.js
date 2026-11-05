@@ -8,7 +8,7 @@ import { PROJECTS } from "../data/projects.js"
 import { EMAIL, HERO_SLUGS, SECTOR_ORDER, SITE_URL } from "../data/site.js"
 import { markShapes, wordmark } from "./brand.js"
 import { about, approach, careers, contact, hero, lightbox, marquee, projects, services, stats, trust } from "./sections.js"
-import { btn, esc, icon, img, pad, rich, srcsetOf } from "./util.js"
+import { btn, esc, icon, img, pad, srcsetOf } from "./util.js"
 
 const CONTENT = { fr, en }
 
@@ -99,12 +99,10 @@ function header(c) {
     })
     .join("")
 
-  const [tagA, tagB] = h.tagline
   return `<header class="hdr" data-header>
   <div class="hdr__progress" aria-hidden="true"><span data-progress></span></div>
   <div class="wrap hdr__bar">
     <a class="hdr__logo" href="${c.path}" aria-label="L'Intendant">${wordmark({ className: "hdr__wordmark" })}</a>
-    <p class="hdr__tag">${rich(tagA)}<br>${rich(tagB)}</p>
     <nav class="nav" aria-label="${esc(c.ui.menu)}"><ul class="nav__list">${items}</ul></nav>
     <div class="hdr__end">
       <a class="hdr__lang" href="${c.alt.path}" hreflang="${c.alt.lang}" lang="${c.alt.lang}" title="${esc(c.alt.name)}">${esc(c.alt.short)}</a>
@@ -139,7 +137,7 @@ function footer(c) {
   const year = new Date().getFullYear()
   const nav = c.header.nav.map((n) => `<li><a href="#${c.ids[n.key]}">${esc(n.label)}</a></li>`).join("")
   const svc = c.services.items.map((s, i) => `<li><a href="#${c.ids.services}" data-goto-svc="${i}">${esc(s.name)}</a></li>`).join("")
-  return `<footer class="ftr">
+  return `<footer class="ftr lined">
   <div class="wrap">
     <div class="ftr__top">
       <div class="ftr__brand">
